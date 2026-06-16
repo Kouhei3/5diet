@@ -47,6 +47,80 @@ let currentCustomExercises = [];
 let workoutHistory = [];             
 let currentSelectedExercise = null;  
 
+const STORAGE_KEYS = {
+    exercises: 'fitRecordCustomExercises',
+    history: 'fitRecordHistory'
+};
+
+const BACKEND_URL = 'http://44.220.150.89:8080/api/records';
+
+function safeJsonParse(value, fallback) {
+    try {
+        return JSON.parse(value);
+    } catch (e) {
+        return fallback;
+    }
+}
+
+function loadSavedData() {
+    const savedExercises = safeJsonParse(localStorage.getItem(STORAGE_KEYS.exercises), []);
+    if (Array.isArray(savedExercises)) {
+        currentCustomExercises = savedExercises;
+    }
+
+    const savedHistory = safeJsonParse(localStorage.getItem(STORAGE_KEYS.history), []);
+    if (Array.isArray(savedHistory)) {
+        workoutHistory = savedHistory.map(log => ({
+            ...log,
+            date: log.date ? new Date(log.date) : new Date()
+        }));
+    }
+}
+
+function saveCustomExercises() {
+    localStorage.setItem(STORAGE_KEYS.exercises, JSON.stringify(currentCustomExercises));
+}
+
+function saveWorkoutHistory() {
+    const serializableHistory = workoutHistory.map(log => ({
+        ...log,
+        date: log.date instanceof Date ? log.date.toISOString() : log.date
+    }));
+    localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(serializableHistory));
+}
+
+// ヘルパー: 履歴項目を削除
+function deleteHistoryByIndex(index) {
+    if (index >= 0 && index < workoutHistory.length) {
+        workoutHistory.splice(index, 1);
+        saveWorkoutHistory();
+        renderHistory();
+    }
+}
+
+// カスタム種目の操作: 削除 / 編集
+function deleteCustomExerciseById(id, categoryName) {
+    const idx = currentCustomExercises.findIndex(ex => ex.id === id);
+    if (idx !== -1) {
+        currentCustomExercises.splice(idx, 1);
+        saveCustomExercises();
+        showExerciseList({ name: categoryName });
+    }
+}
+
+function editCustomExerciseById(id, categoryName) {
+    const ex = currentCustomExercises.find(e => e.id === id);
+    if (!ex) return;
+    const newName = prompt('種目名を編集してください', ex.name);
+    if (newName === null) return; // キャンセル
+    const newMemo = prompt('メモを編集してください（空欄可）', ex.desc || '');
+    if (newMemo === null) return;
+    ex.name = newName.trim() || ex.name;
+    ex.desc = newMemo.trim() || ex.desc;
+    saveCustomExercises();
+    showExerciseList({ name: categoryName });
+}
+
 /* =========================================================================
    初期化イベントリスナー
 ========================================= */
@@ -57,7 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initCounterButtons();   
     initCustomExercise();   
     initRecordSaving();     
-    
+
+    loadSavedData();
     renderHome();
 });
 
@@ -211,7 +286,7 @@ function showExerciseList(category) {
     filtered.forEach(ex => {
         const div = document.createElement('div');
         div.className = 'ex-item animate-press';
-        
+
         let lvlClass = 'beginner';
         if (ex.level === '中級者') lvlClass = 'middle';
         if (ex.level === '上級者') lvlClass = 'advanced';
@@ -221,9 +296,40 @@ function showExerciseList(category) {
                 <span class="ex-name-text">${ex.name}</span>
                 <span class="ex-level-badge ${lvlClass}">${ex.level}</span>
             </div>
-            <span class="ex-arrow">→</span>
+            <div class="ex-controls">
+                <span class="ex-arrow">→</span>
+            </div>
         `;
+
+        // クリックで入力画面へ（コントロールボタンは propagation を止める）
         div.addEventListener('click', () => showInputScreen(ex));
+
+        // カスタム種目なら編集／削除ボタンを追加
+        if (typeof ex.id === 'string' && ex.id.startsWith('custom_')) {
+            const controls = div.querySelector('.ex-controls');
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn-small btn-outline';
+            editBtn.innerText = '編集';
+            editBtn.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                editCustomExerciseById(ex.id, category.name);
+            });
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'btn-small btn-danger';
+            delBtn.innerText = '削除';
+            delBtn.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                if (confirm(`${ex.name} を削除しますか？`)) {
+                    deleteCustomExerciseById(ex.id, category.name);
+                }
+            });
+
+            controls.insertBefore(editBtn, controls.firstChild);
+            controls.insertBefore(delBtn, controls.firstChild);
+        }
+
         list.appendChild(div);
     });
 
@@ -248,6 +354,7 @@ function initCustomExercise() {
                 desc: memo || '独自に追加したオリジナル種目です。'
             };
             currentCustomExercises.push(newEx);
+            saveCustomExercises();
             
             inputObj.value = '';
             memoObj.value = '';
@@ -320,15 +427,14 @@ function initRecordSaving() {
             reps: reps,
             date: date
         });
+        saveWorkoutHistory();
 
         alert(`${currentSelectedExercise.name} を記録しました！\nAWSサーバーへ同期します。`);
         resetRecordScreen();
 
-        // 【通信処理】指定されたAWSのIPv4アドレスへ送信
+        // 【通信処理】AWS/バックエンドへ送信
         try {
-            const targetUrl = 'http://44.220.150.89:8080/api/workout'; 
-
-            const response = await fetch(targetUrl, {
+            const response = await fetch(BACKEND_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -377,9 +483,9 @@ function renderHistory() {
     filteredHistory.forEach(log => {
         const card = document.createElement('div');
         card.className = 'card log-card';
-        
-        const detailText = log.exercise.type === 'bodyweight' 
-            ? `${log.reps} 回` 
+
+        const detailText = log.exercise.type === 'bodyweight'
+            ? `${log.reps} 回`
             : `${log.weight} kg × ${log.reps} 回`;
 
         card.innerHTML = `
@@ -392,6 +498,53 @@ function renderHistory() {
                 <p>${detailText}</p>
             </div>
         `;
+
+        // 右寄せのコントロール群を作る（編集・削除）
+        const controls = document.createElement('div');
+        controls.className = 'ex-controls right';
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-small btn-outline';
+        editBtn.innerText = '編集';
+        editBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            const idx = workoutHistory.indexOf(log);
+            if (idx === -1) return;
+            if (log.exercise.type === 'bodyweight') {
+                const newReps = prompt('回数を編集してください', String(log.reps));
+                if (newReps === null) return;
+                const nr = parseInt(newReps) || log.reps;
+                workoutHistory[idx].reps = nr;
+            } else {
+                const newWeight = prompt('重量(kg)を編集してください', String(log.weight));
+                if (newWeight === null) return;
+                const nw = parseFloat(newWeight) || log.weight;
+                const newReps = prompt('回数を編集してください', String(log.reps));
+                if (newReps === null) return;
+                const nr = parseInt(newReps) || log.reps;
+                workoutHistory[idx].weight = nw;
+                workoutHistory[idx].reps = nr;
+            }
+            saveWorkoutHistory();
+            renderHistory();
+        });
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-small btn-danger';
+        deleteBtn.innerText = '削除';
+        deleteBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            const idx = workoutHistory.indexOf(log);
+            if (idx !== -1 && confirm('この記録を削除しますか？')) {
+                deleteHistoryByIndex(idx);
+            }
+        });
+
+        controls.appendChild(editBtn);
+        controls.appendChild(deleteBtn);
+
+        // カードにコントロールを追加
+        card.appendChild(controls);
         container.appendChild(card);
     });
 }
