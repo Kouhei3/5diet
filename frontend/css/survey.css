@@ -1,0 +1,540 @@
+/* =====================================================
+   5DIET – survey.css
+   Design: dark forest green × warm white × vibrant lime
+   ===================================================== */
+
+/* ---------- CSS変数（トークン） ---------- */
+:root {
+  --bg: #f7f8f4;
+  --surface: #ffffff;
+  --primary: #1e4d2b; /* deep forest green */
+  --primary-lt: #2e7d45;
+  --accent: #7ec845; /* lime green */
+  --accent-pale: #edf7e2;
+  --danger: #d63b3b;
+  --text-main: #1a1a1a;
+  --text-sub: #5a6272;
+  --border: #dde3d8;
+  --border-focus: #7ec845;
+  --radius-card: 16px;
+  --radius-input: 10px;
+  --shadow-card: 0 4px 24px rgba(30, 77, 43, 0.08);
+  --font-jp: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  --transition: 0.2s ease;
+}
+
+/* ---------- リセット & ベース ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-jp);
+  background: var(--bg);
+  color: var(--text-main);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ---------- ページラッパー ---------- */
+.page-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 16px 48px;
+}
+
+/* =====================
+   ヘッダー
+   ===================== */
+.survey-header {
+  padding: 40px 0 24px;
+  text-align: center;
+}
+
+.logo-block {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.logo-num {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.logo-text {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 4px;
+}
+
+.header-sub {
+  color: var(--text-sub);
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+/* =====================
+   プログレスバー
+   ===================== */
+.progress-wrap {
+  width: 100%;
+  height: 5px;
+  background: var(--border);
+  border-radius: 99px;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary-lt), var(--accent));
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* =====================
+   カード（セクション）
+   ===================== */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 32px 28px;
+  margin-bottom: 24px;
+  border-top: 4px solid var(--primary);
+  transition: box-shadow var(--transition);
+}
+
+.card:hover {
+  box-shadow: 0 8px 32px rgba(30, 77, 43, 0.13);
+}
+
+.section-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--accent);
+  background: var(--accent-pale);
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* =====================
+   フィールドグループ
+   ===================== */
+.field-group {
+  margin-bottom: 22px;
+}
+
+.field-group:last-child {
+  margin-bottom: 0;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+/* 必須バッジ */
+.required {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--danger);
+  background: #fdeaea;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* 任意バッジ */
+.optional-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  background: #efefef;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* =====================
+   入力要素
+   ===================== */
+.input-unit-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-box {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-input);
+  font-size: 1rem;
+  font-family: var(--font-jp);
+  color: var(--text-main);
+  background: #fafbf8;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+  outline: none;
+}
+
+.input-box:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(126, 200, 69, 0.2);
+  background: #fff;
+}
+
+.input-box.error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(214, 59, 59, 0.15);
+}
+
+.unit {
+  font-size: 0.88rem;
+  color: var(--text-sub);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* date input */
+.date-input {
+  display: block;
+  width: 100%;
+}
+
+/* select */
+.select-box {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-input);
+  font-size: 0.95rem;
+  font-family: var(--font-jp);
+  color: var(--text-main);
+  background: #fafbf8;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A6272' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+  outline: none;
+}
+
+.select-box:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(126, 200, 69, 0.2);
+  background-color: #fff;
+}
+
+.select-box.error {
+  border-color: var(--danger);
+}
+
+/* textarea */
+.textarea-box {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-input);
+  font-size: 0.95rem;
+  font-family: var(--font-jp);
+  color: var(--text-main);
+  background: #fafbf8;
+  resize: vertical;
+  outline: none;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.textarea-box:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(126, 200, 69, 0.2);
+  background: #fff;
+}
+
+.textarea-box.error {
+  border-color: var(--danger);
+}
+
+/* =====================
+   性別カード
+   ===================== */
+.gender-wrap {
+  display: flex;
+  gap: 16px;
+}
+
+.gender-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 12px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+  background: #fafbf8;
+}
+
+.gender-card input[type="radio"] {
+  display: none;
+}
+
+.gender-card:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--accent-pale);
+  box-shadow: 0 0 0 3px rgba(30, 77, 43, 0.12);
+}
+
+.gender-icon {
+  font-size: 1.8rem;
+  color: var(--text-sub);
+  transition: color var(--transition);
+}
+
+.gender-card:has(input:checked) .gender-icon {
+  color: var(--primary);
+}
+
+.gender-txt {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  transition: color var(--transition);
+}
+
+.gender-card:has(input:checked) .gender-txt {
+  color: var(--primary);
+}
+
+/* =====================
+   BMIディスプレイ
+   ===================== */
+.bmi-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-lt) 100%
+  );
+  color: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: -6px 0 22px;
+}
+
+.bmi-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.bmi-value {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: var(--accent);
+}
+
+.bmi-status {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* =====================
+   残り日数バッジ
+   ===================== */
+.days-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--accent-pale);
+  padding: 3px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--accent);
+}
+
+/* =====================
+   エラーメッセージ
+   ===================== */
+.err-msg {
+  font-size: 0.78rem;
+  color: var(--danger);
+  margin-top: 5px;
+  min-height: 18px;
+  font-weight: 600;
+}
+
+/* =====================
+   hidden ユーティリティ
+   ===================== */
+.hidden {
+  display: none !important;
+}
+
+/* =====================
+   送信エリア
+   ===================== */
+.submit-area {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-lt) 100%
+  );
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-family: var(--font-jp);
+  padding: 16px 48px;
+  border: none;
+  border-radius: 99px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(30, 77, 43, 0.3);
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition),
+    background var(--transition);
+  letter-spacing: 1px;
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(30, 77, 43, 0.35);
+  background: linear-gradient(135deg, var(--primary-lt) 0%, #4caf60 100%);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
+
+.submit-note {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--text-sub);
+}
+
+/* =====================
+   フッター
+   ===================== */
+.survey-footer {
+  text-align: center;
+  padding: 24px 0 8px;
+  font-size: 0.75rem;
+  color: var(--text-sub);
+}
+
+/* =====================
+   レスポンシブ
+   ===================== */
+@media (max-width: 480px) {
+  .card {
+    padding: 24px 18px;
+  }
+  .btn-submit {
+    padding: 14px 32px;
+    font-size: 0.95rem;
+  }
+  .logo-num {
+    font-size: 2.2rem;
+  }
+  .logo-text {
+    font-size: 1.4rem;
+  }
+}
+
+/* =====================
+   アニメーション：スクロール入場
+   ===================== */
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: cardIn 0.5s ease both;
+}
+.card[data-section="1"] {
+  animation-delay: 0.05s;
+}
+.card[data-section="2"] {
+  animation-delay: 0.15s;
+}
+.card[data-section="3"] {
+  animation-delay: 0.25s;
+}
+.card[data-section="4"] {
+  animation-delay: 0.35s;
+}
+
+/* モーション軽減 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
