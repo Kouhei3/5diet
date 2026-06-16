@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>タイムスケジュール</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+
+  <h1>タイムスケジュール</h1>
+
+  <div class="card">
+    <label>時間</label>
+    <input id="timeInput" type="time">
+
+    <label>予定</label>
+    <input id="planInput" type="text" placeholder="例：筋トレ">
+
+    <button id="addPlanBtn">追加</button>
+  </div>
+
+  <div class="result">
+    <h2>今日の予定</h2>
+    <ul id="planList"></ul>
+  </div>
+
+</body>
+</html>

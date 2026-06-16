@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>体重入力</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js（必須） -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- 自分のJS（defer 必須） -->
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+
+  <h1>体重入力</h1>
+
+  <div class="card">
+    <label>身長（cm）</label>
+    <input id="height" type="number" placeholder="160">
+
+    <label>体重（kg）</label>
+    <input id="weight" type="number" step="0.1" placeholder="50">
+
+    <button id="saveWeightBtn">保存</button>
+  </div>
+
+  <div class="result">
+    <p>入力された体重: <span id="weightResult">--</span> kg</p>
+    <p>BMI: <span id="bmiResult">--</span></p>
+  </div>
+
+  <h2>体重グラフ</h2>
+  <canvas id="weightChart"></canvas>
+
+</body>
+</html>
