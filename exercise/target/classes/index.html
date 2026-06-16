@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スケジュール＆履歴管理 - スマホ版原型</title>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0; padding: 0; background-color: #f0f2f5;
+            display: flex; justify-content: center; min-height: 100vh;
+        }
+        .phone-container {
+            width: 100%; max-width: 410px; background: white;
+            min-height: 100vh; display: flex; flex-direction: column;
+            box-sizing: border-box; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        /* カレンダーエリア */
+        .calendar-section { padding: 10px; border-bottom: 2px solid #eee; }
+        #calendar { font-size: 0.85rem; }
+
+        /* 下部：履歴・詳細エリア */
+        .detail-section { flex: 1; padding: 15px; background-color: #fdfdfd; }
+        .selected-date-title { font-size: 1.1rem; margin: 0 0 10px 0; color: #333; font-weight: bold; }
+        
+        /* 履歴のリスト項目 */
+        .history-list { list-style: none; padding: 0; margin: 0; }
+        .history-item {
+            padding: 10px; border-radius: 8px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.9rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        /* カテゴリ別の色 */
+        .item-event { background-color: #fff3cd; border-left: 5px solid #ffc107; color: #856404; } /* 予定: 黄 */
+        .item-exercise { background-color: #cce5ff; border-left: 5px solid #007bff; color: #004085; } /* 運動: 青 */
+        .item-meal { background-color: #d4edda; border-left: 5px solid #28a745; color: #155724; } /* 食事: 緑 */
+        
+        .delete-text { font-size: 0.8rem; color: #dc3545; cursor: pointer; text-decoration: underline; }
+        .no-data { color: #aaa; font-size: 0.85rem; text-align: center; margin-top: 20px; }
+
+        /* 模擬ボタンエリア（他機能との連動用） */
+        .mock-buttons { margin-top: 15px; display: flex; gap: 5px; }
+        .mock-btn {
+            flex: 1; padding: 8px; border: none; border-radius: 6px;
+            font-size: 0.75rem; font-weight: bold; cursor: pointer; color: white;
+        }
+        .btn-ev { background-color: #ffc107; color: #333; }
+        .btn-ex { background-color: #007bff; }
+        .btn-me { background-color: #28a745; }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <div class="calendar-section">
+        <div id="calendar"></div>
+    </div>
+
+    <div class="detail-section">
+        <div class="selected-date-title" id="targetDateText">日付を選択してください</div>
+        
+        <ul class="history-list" id="historyList"></ul>
+
+        <div class="mock-buttons">
+            <button class="mock-btn btn-ev" onclick="addMockData('event', 'チートデイ', '00:00')">＋予定追加</button>
+            <button class="mock-btn btn-ex" onclick="addMockData('exercise', 'ベンチプレス 3セット', '18:30')">＋運動反映(模擬)</button>
+            <button class="mock-btn btn-me" onclick="addMockData('meal', '胸肉とブロッコリー(400kcal)', '12:15')">＋食事反映(模擬)</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let calendar;
+let selectedDateStr = new Date().toISOString().split('T')[0]; // 初期値は今日
+let savedEvents = JSON.parse(localStorage.getItem('dietAppEvents')) || [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'ja',
+        headerToolbar: { left: 'prev', center: 'title', right: 'next' },
+        height: 'auto',
+        events: savedEvents, // ローカルストレージのデータ
+        
+        // カレンダーの日付や予定をタップしたときの処理
+        dateClick: function(info) {
+            updateDetailSection(info.dateStr);
+        },
+        eventClick: function(info) {
+            const dateStr = info.event.startStr.split('T')[0];
+            updateDetailSection(dateStr);
+        }
+    });
+
+    calendar.render();
+
+    // ★同期処理：AWSからデータを取得してカレンダーに反映
+    fetchAWSWorkoutData();
+
+    updateDetailSection(selectedDateStr); // 初期表示
+});
+
+// 🚀 ★追加：AWSからデータを取得する関数
+async function fetchAWSWorkoutData() {
+    const targetUrl = 'http://44.220.150.89:8080/api/workout'; 
+
+    try {
+        const response = await fetch(targetUrl, {
+            method: 'GET', // データ取得のためGETメソッドを使用
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+        }
+
+        // AWSから返ってきた記録データの配列
+        const workoutLogs = await response.json();
+
+        // index.html の該当箇所を以下のように安全に書き換える
+workoutLogs.forEach(log => {
+    // log.exercise が存在しない場合の防衛策
+    if (!log.exercise) {
+        console.warn("exerciseデータが含まれていないログスキップ:", log);
+        return;
+    }
+
+    const isBodyweight = log.exercise.type === 'bodyweight';
+    const detailText = isBodyweight ? `${log.reps}回` : `${log.weight}kg × ${log.reps}回`;
+    const title = `💪 ${log.exercise.name} (${detailText})`;
+
+    const eventId = log.id || `aws_${new Date(log.date).getTime()}`;
+    if (calendar.getEventById(eventId)) return;
+
+    // FullCalendarに渡すオブジェクト
+    const newEvent = {
+        id: eventId,
+        title: title,
+        // 時刻のズレを防ぐため、もし日付部分だけ(YYYY-MM-DD)が欲しい場合は成形する
+        start: log.date, 
+        backgroundColor: '#007bff',
+        borderColor: '#007bff',
+        // 後で履歴エリアで使いやすいように log そのものも extendedProps に入れておく
+        extendedProps: { 
+            category: 'exercise',
+            rawLog: log 
+        }
+    };
+
+    calendar.addEvent(newEvent);
+});
+
+        // データ追加が完了したら、下部の履歴エリアを再描画
+        updateDetailSection(selectedDateStr);
+        console.log('AWSからのデータ同期が成功しました！');
+
+    } catch (error) {
+        console.error('AWSからのデータ取得に失敗しました。サーバーの起動状態やCORS設定を確認してください:', error);
+    }
+}
+
+// 🔄 ★改良：下部の「履歴エリア」を更新する関数
+// AWSデータのタイムゾーン（UTC）起因による日付ズレを防ぐため、FullCalendarのデータから抽出するように変更
+function updateDetailSection(dateStr) {
+    selectedDateStr = dateStr;
+    document.getElementById('targetDateText').innerText = `${dateStr} の記録・予定`;
+    
+    const listEl = document.getElementById('historyList');
+    listEl.innerHTML = ''; // 一旦クリア
+
+    // カレンダー上のすべてのイベントから、選択された日のイベントを抽出
+    const allEvents = calendar.getEvents();
+    const todaysEvents = allEvents.filter(ev => {
+        // 各イベントの開始日時をブラウザの時間（JST）の 'YYYY-MM-DD' 形式に変換して比較
+        const evDateStr = ev.start.toLocaleDateString('sv-SE'); 
+        return evDateStr === dateStr;
+    });
+
+    if (todaysEvents.length === 0) {
+        listEl.innerHTML = '<li class="no-data">この日の予定・履歴はありません</li>';
+        return;
+    }
+
+    // 時間順に並び替え
+    todaysEvents.sort((a, b) => a.start - b.start);
+
+    todaysEvents.forEach(ev => {
+        const li = document.createElement('li');
+        const category = ev.extendedProps.category || 'event';
+        li.className = `history-item item-${category}`;
+        
+        // 時間の表示（HH:mm）
+        const hours = String(ev.start.getHours()).padStart(2, '0');
+        const minutes = String(ev.start.getMinutes()).padStart(2, '0');
+        const timeStr = `${hours}:${minutes}`;
+        
+        li.innerHTML = `
+            <div><strong>[${timeStr}]</strong> ${ev.title}</div>
+            <div class="delete-text" onclick="deleteItem('${ev.id}')">削除</div>
+        `;
+        listEl.appendChild(li);
+    });
+}
+
+// 履歴削除用関数
+function deleteItem(id) {
+    if (confirm('この記録を削除しますか？\n(※AWS上の元データは削除されません)')) {
+        const ev = calendar.getEventById(id);
+        if(ev) ev.remove();
+        savedEvents = savedEvents.filter(event => event.id !== id);
+        localStorage.setItem('dietAppEvents', JSON.stringify(savedEvents));
+        updateDetailSection(selectedDateStr);
+    }
+}
+
+// 他機能の模擬ボタン用（変更なし）
+function addMockData(category, title, time) {
+    const id = String(Date.now() + Math.random());
+    const startDateTime = selectedDateStr + 'T' + time + ':00';
+    
+    let color = '#ffc107'; // 黄
+    if (category === 'exercise') color = '#007bff'; // 青
+    if (category === 'meal') color = '#28a745'; // 緑
+
+    const newEvent = {
+        id: id,
+        title: (category === 'exercise' ? '💪 ' : category === 'meal' ? '🍳 ' : '📅 ') + title,
+        start: startDateTime,
+        backgroundColor: color,
+        borderColor: color,
+        extendedProps: { category: category }
+    };
+
+    calendar.addEvent(newEvent);
+    savedEvents.push(newEvent);
+    localStorage.setItem('dietAppEvents', JSON.stringify(savedEvents));
+
+    updateDetailSection(selectedDateStr);
+}
+</script>
+
+</body>
+</html>
