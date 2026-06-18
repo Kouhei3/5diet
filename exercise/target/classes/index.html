@@ -40,10 +40,32 @@
         .delete-text { font-size: 0.8rem; color: #dc3545; cursor: pointer; text-decoration: underline; }
         .no-data { color: #aaa; font-size: 0.85rem; text-align: center; margin-top: 20px; }
 
-        /* 模擬ボタンエリア（他機能との連動用） */
-        .mock-buttons { margin-top: 15px; display: flex; gap: 5px; }
-        .mock-btn {
-            flex: 1; padding: 8px; border: none; border-radius: 6px;
+        .manual-form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+            margin-top: 12px;
+        }
+        .manual-form input,
+        .manual-form select,
+        .manual-form button {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 0.85rem;
+        }
+        .manual-form button {
+            background-color: #333;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .sync-buttons { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .sync-btn {
+            padding: 8px 4px; border: none; border-radius: 6px;
             font-size: 0.75rem; font-weight: bold; cursor: pointer; color: white;
         }
         .btn-ev { background-color: #ffc107; color: #333; }
@@ -63,143 +85,231 @@
         
         <ul class="history-list" id="historyList"></ul>
 
-        <div class="mock-buttons">
-            <button class="mock-btn btn-ev" onclick="addMockData('event', 'チートデイ', '00:00')">＋予定追加</button>
-            <button class="mock-btn btn-ex" onclick="addMockData('exercise', 'ベンチプレス 3セット', '18:30')">＋運動反映(模擬)</button>
-            <button class="mock-btn btn-me" onclick="addMockData('meal', '胸肉とブロッコリー(400kcal)', '12:15')">＋食事反映(模擬)</button>
+        <div class="manual-form">
+            <select id="manualCategory">
+                <option value="event">予定</option>
+                <option value="exercise">運動</option>
+                <option value="meal">食事</option>
+            </select>
+            <input id="manualTitle" type="text" placeholder="チートデイ など自由に入力">
+            <input id="manualDate" type="date">
+            <input id="manualTime" type="time">
+            <button onclick="addManualSchedule()">＋予定を追加</button>
+        </div>
+
+        <div class="sync-buttons">
+            <button class="sync-btn btn-ex" onclick="fetchAWSData('workout')">AWS筋トレ</button>
+            <button class="sync-btn btn-me" onclick="fetchAWSData('meal')">AWS食事</button>
+            <button class="sync-btn btn-ev" onclick="fetchAWSData('workout-menu')">AWSメニュー</button>
         </div>
     </div>
 </div>
 
 <script>
 let calendar;
-let selectedDateStr = new Date().toISOString().split('T')[0]; // 初期値は今日
+let selectedDateStr = getDateString(new Date());
 let savedEvents = JSON.parse(localStorage.getItem('dietAppEvents')) || [];
+
+function getDateString(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function setDateInputs(dateStr) {
+    const dateInput = document.getElementById('manualDate');
+    const timeInput = document.getElementById('manualTime');
+    if (dateInput) dateInput.value = dateStr;
+    if (timeInput && !timeInput.value) timeInput.value = '08:00';
+}
+
+function saveEvents() {
+    localStorage.setItem('dietAppEvents', JSON.stringify(savedEvents));
+}
+
+function getEventDateKey(dateValue) {
+    const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+    return getDateString(date);
+}
+
+function getDisplayTime(dateValue) {
+    const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+    const h = String(date.getHours()).padStart(2, '0');
+    const m = String(date.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
+}
+
+function addCalendarEvent(eventData) {
+    const id = eventData.id || String(Date.now() + Math.random());
+    const category = eventData.category || 'event';
+    const title = eventData.title || '予定';
+    const start = eventData.start || `${selectedDateStr}T08:00:00`;
+
+    let backgroundColor = '#ffc107';
+    if (category === 'exercise') backgroundColor = '#007bff';
+    if (category === 'meal') backgroundColor = '#28a745';
+
+    const newEvent = {
+        id,
+        title,
+        start,
+        backgroundColor,
+        borderColor: backgroundColor,
+        extendedProps: {
+            category,
+            rawData: eventData
+        }
+    };
+
+    if (!calendar.getEventById(id)) {
+        calendar.addEvent(newEvent);
+    }
+
+    if (!savedEvents.some(ev => ev.id === id)) {
+        savedEvents.push(newEvent);
+        saveEvents();
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
+    setDateInputs(selectedDateStr);
 
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'ja',
         headerToolbar: { left: 'prev', center: 'title', right: 'next' },
         height: 'auto',
-        events: savedEvents, // ローカルストレージのデータ
-        
-        // カレンダーの日付や予定をタップしたときの処理
+        events: savedEvents,
         dateClick: function(info) {
-            updateDetailSection(info.dateStr);
+            selectedDateStr = info.dateStr;
+            setDateInputs(selectedDateStr);
+            updateDetailSection(selectedDateStr);
         },
         eventClick: function(info) {
             const dateStr = info.event.startStr.split('T')[0];
+            selectedDateStr = dateStr;
+            setDateInputs(selectedDateStr);
             updateDetailSection(dateStr);
         }
     });
 
     calendar.render();
-
-    // ★同期処理：AWSからデータを取得してカレンダーに反映
-    fetchAWSWorkoutData();
-
-    updateDetailSection(selectedDateStr); // 初期表示
+    updateDetailSection(selectedDateStr);
+    Promise.all([
+        fetchAWSData('workout'),
+        fetchAWSData('meal'),
+        fetchAWSData('workout-menu')
+    ]);
 });
 
-// 🚀 ★追加：AWSからデータを取得する関数
-async function fetchAWSWorkoutData() {
-    const targetUrl = 'http://44.220.150.89:8080/api/workout'; 
+async function fetchAWSData(type) {
+    const endpoints = {
+        workout: 'http://44.220.150.89:8080/api/workout',
+        meal: 'http://44.220.150.89:8080/api/meal',
+        'workout-menu': 'http://44.220.150.89:8080/api/workout-menu'
+    };
+
+    const targetUrl = endpoints[type];
+    if (!targetUrl) {
+        console.warn('対応していない同期タイプです:', type);
+        return;
+    }
 
     try {
         const response = await fetch(targetUrl, {
-            method: 'GET', // データ取得のためGETメソッドを使用
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
         });
-
         if (!response.ok) {
             throw new Error(`HTTPエラー! ステータス: ${response.status}`);
         }
 
-        // AWSから返ってきた記録データの配列
-        const workoutLogs = await response.json();
+        const data = await response.json();
 
-        // index.html の該当箇所を以下のように安全に書き換える
-workoutLogs.forEach(log => {
-    // log.exercise が存在しない場合の防衛策
-    if (!log.exercise) {
-        console.warn("exerciseデータが含まれていないログスキップ:", log);
-        return;
-    }
+        if (type === 'workout') {
+            data.forEach(log => {
+                const dateValue = log.date || log.createdAt || log.workoutDate;
+                if (!dateValue) return;
 
-    const isBodyweight = log.exercise.type === 'bodyweight';
-    const detailText = isBodyweight ? `${log.reps}回` : `${log.weight}kg × ${log.reps}回`;
-    const title = `💪 ${log.exercise.name} (${detailText})`;
+                const start = dateValue.includes('T') ? dateValue : `${dateValue}T08:00:00`;
+                const exerciseName = log.exerciseName || log.exercise?.name || '筋トレ';
+                const exerciseType = log.exerciseType || log.exercise?.type;
+                const reps = log.reps || 0;
+                const weight = log.weight || 0;
+                const detailText = exerciseType === 'bodyweight'
+                    ? `${reps}回`
+                    : `${weight}kg × ${reps}回`;
+                const title = `💪 ${exerciseName} (${detailText})`;
 
-    const eventId = log.id || `aws_${new Date(log.date).getTime()}`;
-    if (calendar.getEventById(eventId)) return;
-
-    // FullCalendarに渡すオブジェクト
-    const newEvent = {
-        id: eventId,
-        title: title,
-        // 時刻のズレを防ぐため、もし日付部分だけ(YYYY-MM-DD)が欲しい場合は成形する
-        start: log.date, 
-        backgroundColor: '#007bff',
-        borderColor: '#007bff',
-        // 後で履歴エリアで使いやすいように log そのものも extendedProps に入れておく
-        extendedProps: { 
-            category: 'exercise',
-            rawLog: log 
+                addCalendarEvent({
+                    id: log.id ? `aws_workout_${log.id}` : `aws_workout_${start}`,
+                    title,
+                    start,
+                    category: 'exercise'
+                });
+            });
+        } else if (type === 'meal') {
+            data.forEach(item => {
+                const dateValue = item.date || item.day || item.mealDate;
+                const timeValue = item.time || item.mealTime || '12:00';
+                const title = item.title || item.name || '食事';
+                const start = `${dateValue}T${timeValue}`;
+                addCalendarEvent({
+                    id: item.id ? `aws_meal_${item.id}` : `aws_meal_${start}`,
+                    title: `🍳 ${title}`,
+                    start,
+                    category: 'meal'
+                });
+            });
+        } else if (type === 'workout-menu') {
+            data.forEach(item => {
+                const dateValue = item.date || item.day || selectedDateStr;
+                const timeValue = item.time || item.scheduleTime || '18:00';
+                const title = item.title || item.name || 'メニュー';
+                const start = `${dateValue}T${timeValue}`;
+                addCalendarEvent({
+                    id: item.id ? `aws_menu_${item.id}` : `aws_menu_${start}`,
+                    title: `🏋️ ${title}`,
+                    start,
+                    category: 'exercise'
+                });
+            });
         }
-    };
 
-    calendar.addEvent(newEvent);
-});
-
-        // データ追加が完了したら、下部の履歴エリアを再描画
         updateDetailSection(selectedDateStr);
-        console.log('AWSからのデータ同期が成功しました！');
-
+        console.log(`${type} の同期が完了しました`);
     } catch (error) {
-        console.error('AWSからのデータ取得に失敗しました。サーバーの起動状態やCORS設定を確認してください:', error);
+        console.error(`${type} の同期に失敗しました:`, error);
     }
 }
 
-// 🔄 ★改良：下部の「履歴エリア」を更新する関数
-// AWSデータのタイムゾーン（UTC）起因による日付ズレを防ぐため、FullCalendarのデータから抽出するように変更
 function updateDetailSection(dateStr) {
     selectedDateStr = dateStr;
     document.getElementById('targetDateText').innerText = `${dateStr} の記録・予定`;
-    
-    const listEl = document.getElementById('historyList');
-    listEl.innerHTML = ''; // 一旦クリア
 
-    // カレンダー上のすべてのイベントから、選択された日のイベントを抽出
-    const allEvents = calendar.getEvents();
-    const todaysEvents = allEvents.filter(ev => {
-        // 各イベントの開始日時をブラウザの時間（JST）の 'YYYY-MM-DD' 形式に変換して比較
-        const evDateStr = ev.start.toLocaleDateString('sv-SE'); 
+    const listEl = document.getElementById('historyList');
+    listEl.innerHTML = '';
+
+    const todaysEvents = calendar.getEvents().filter(ev => {
+        const evDateStr = getEventDateKey(ev.start);
         return evDateStr === dateStr;
     });
+
+    todaysEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
 
     if (todaysEvents.length === 0) {
         listEl.innerHTML = '<li class="no-data">この日の予定・履歴はありません</li>';
         return;
     }
 
-    // 時間順に並び替え
-    todaysEvents.sort((a, b) => a.start - b.start);
-
     todaysEvents.forEach(ev => {
         const li = document.createElement('li');
         const category = ev.extendedProps.category || 'event';
         li.className = `history-item item-${category}`;
-        
-        // 時間の表示（HH:mm）
-        const hours = String(ev.start.getHours()).padStart(2, '0');
-        const minutes = String(ev.start.getMinutes()).padStart(2, '0');
-        const timeStr = `${hours}:${minutes}`;
-        
+
+        const timeStr = getDisplayTime(ev.start);
         li.innerHTML = `
             <div><strong>[${timeStr}]</strong> ${ev.title}</div>
             <div class="delete-text" onclick="deleteItem('${ev.id}')">削除</div>
@@ -208,38 +318,41 @@ function updateDetailSection(dateStr) {
     });
 }
 
-// 履歴削除用関数
 function deleteItem(id) {
-    if (confirm('この記録を削除しますか？\n(※AWS上の元データは削除されません)')) {
+    if (confirm('この記録を削除しますか？')) {
         const ev = calendar.getEventById(id);
-        if(ev) ev.remove();
+        if (ev) ev.remove();
         savedEvents = savedEvents.filter(event => event.id !== id);
-        localStorage.setItem('dietAppEvents', JSON.stringify(savedEvents));
+        saveEvents();
         updateDetailSection(selectedDateStr);
     }
 }
 
-// 他機能の模擬ボタン用（変更なし）
-function addMockData(category, title, time) {
-    const id = String(Date.now() + Math.random());
-    const startDateTime = selectedDateStr + 'T' + time + ':00';
-    
-    let color = '#ffc107'; // 黄
-    if (category === 'exercise') color = '#007bff'; // 青
-    if (category === 'meal') color = '#28a745'; // 緑
+function addManualSchedule() {
+    const category = document.getElementById('manualCategory').value;
+    const title = document.getElementById('manualTitle').value.trim();
+    const date = document.getElementById('manualDate').value || selectedDateStr;
+    const time = document.getElementById('manualTime').value || '08:00';
 
-    const newEvent = {
-        id: id,
-        title: (category === 'exercise' ? '💪 ' : category === 'meal' ? '🍳 ' : '📅 ') + title,
-        start: startDateTime,
-        backgroundColor: color,
-        borderColor: color,
-        extendedProps: { category: category }
-    };
+    if (!title) {
+        alert('タイトルを入力してください');
+        return;
+    }
 
-    calendar.addEvent(newEvent);
-    savedEvents.push(newEvent);
-    localStorage.setItem('dietAppEvents', JSON.stringify(savedEvents));
+    const start = `${date}T${time}:00`;
+    const id = `manual_${Date.now()}`;
+    const displayTitle = category === 'exercise'
+        ? `💪 ${title}`
+        : category === 'meal'
+            ? `🍳 ${title}`
+            : `📅 ${title}`;
+
+    addCalendarEvent({
+        id,
+        title: displayTitle,
+        start,
+        category
+    });
 
     updateDetailSection(selectedDateStr);
 }
