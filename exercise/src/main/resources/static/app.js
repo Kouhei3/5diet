@@ -301,7 +301,7 @@ function showExerciseList(category) {
             </div>
         `;
 
-        // クリックで入力画面へ（コントロールボタンは propagation を止める）
+        // クリックで入力画面へ
         div.addEventListener('click', () => showInputScreen(ex));
 
         // カスタム種目なら編集／削除ボタンを追加
@@ -455,7 +455,7 @@ function initRecordSaving() {
 
 /* =========================================================================
    4. 履歴画面処理
-========================================================================= */
+========================================= */
 function renderHistory() {
     const container = document.getElementById('history-content');
     const filterSelect = document.getElementById('history-category-filter');
@@ -543,7 +543,6 @@ function renderHistory() {
         controls.appendChild(editBtn);
         controls.appendChild(deleteBtn);
 
-        // カードにコントロールを追加
         card.appendChild(controls);
         container.appendChild(card);
     });
