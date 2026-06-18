@@ -206,9 +206,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function fetchAWSData(type) {
     const endpoints = {
-        workout: 'http://44.220.150.89:8080/api/workout',
-        meal: 'http://44.220.150.89:8080/api/meal',
-        'workout-menu': 'http://44.220.150.89:8080/api/workout-menu'
+        workout: 'http://localhost:8080/api/workout',
+        meal: 'http://localhost:8080/api/meal',
+        'workout-menu': 'http://localhost:8080/api/workout-menu'
     };
 
     const targetUrl = endpoints[type];
