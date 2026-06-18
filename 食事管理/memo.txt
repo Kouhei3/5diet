@@ -1,0 +1,13 @@
+
+
+const express = require("express");
+
+const app = express();
+
+app.get("/", (req, res) => {
+    res.send("サーバー起動成功");
+});
+
+app.listen(3000, () => {
+    console.log("起動中");
+});
