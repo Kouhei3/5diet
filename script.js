@@ -254,7 +254,7 @@ function loadLatestWeight() {
 
   const latest = data[data.length - 1];
   const el = document.getElementById("latestWeight");
-  if (el) el.textContent = latest.weight + " kg";
+  if (el) el.textContent = "体重: " + latest.weight + " kg";
 }
 
 function loadLatestBMI() {
