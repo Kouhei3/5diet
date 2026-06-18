@@ -1,7 +1,7 @@
 // ===============================
 // 体重入力画面（weight.html）
 // ===============================
-let chart; // グラフ用
+let chart;
 
 const saveWeightBtn = document.getElementById("saveWeightBtn");
 if (saveWeightBtn) {
@@ -14,33 +14,24 @@ if (saveWeightBtn) {
       return;
     }
 
-    // 身長保存
     localStorage.setItem("latestHeight", height);
 
-    // BMI計算
     const bmi = (weight / ((height / 100) ** 2)).toFixed(1);
-
-    // 結果表示
     document.getElementById("weightResult").textContent = weight;
     document.getElementById("bmiResult").textContent = bmi;
 
-    // 体重保存
     saveWeightToLocal(weight);
 
-    // ★ 今日入力した日付を記録
+    const today = new Date().toLocaleDateString("ja-JP");
     localStorage.setItem("lastWeightDate", today);
 
-    // グラフ更新
     updateChart();
-
     alert("保存しました");
   });
 
   updateChart();
 }
-// -------------------------
-// 体重データ保存
-// -------------------------
+
 function saveWeightToLocal(weight) {
   const today = new Date().toLocaleDateString("ja-JP");
   const data = JSON.parse(localStorage.getItem("weights") || "[]");
@@ -48,22 +39,16 @@ function saveWeightToLocal(weight) {
   data.push({ date: today, weight: weight });
   localStorage.setItem("weights", JSON.stringify(data));
 }
-// -------------------------
-// グラフ描画
-// -------------------------
+
 function updateChart() {
   const data = JSON.parse(localStorage.getItem("weights") || "[]");
-  const height = localStorage.getItem("latestHeight"); // BMI計算に必要
+  const height = localStorage.getItem("latestHeight");
 
   if (!height || data.length === 0) return;
 
   const labels = data.map(d => d.date);
   const weights = data.map(d => d.weight);
-
-  // ★ BMI の配列を作る
-  const bmis = data.map(d => {
-    return (d.weight / ((height / 100) ** 2)).toFixed(1);
-  });
+  const bmis = data.map(d => (d.weight / ((height / 100) ** 2)).toFixed(1));
 
   const ctx = document.getElementById("weightChart");
   if (!ctx) return;
@@ -90,18 +75,19 @@ function updateChart() {
           backgroundColor: "rgba(255, 87, 34, 0.2)",
           borderWidth: 2,
           tension: 0.3,
-          yAxisID: "y1" // ★ BMI 用の右側軸
+          yAxisID: "y1"
         }
       ]
     },
     options: {
       scales: {
         y: { beginAtZero: false },
-        y1: { beginAtZero: false, position: "right" } // ★ 右側にBMI軸
+        y1: { beginAtZero: false, position: "right" }
       }
     }
   });
 }
+
 // ===============================
 // 食事入力画面（food.html）
 // ===============================
@@ -118,26 +104,18 @@ if (saveFoodBtn) {
       return;
     }
 
-    // 保存するデータ
     const foodData = {
       name: name,
       calorie: Number(calorie),
       protein: Number(protein)
     };
 
-    // 既存データを取得（なければ空配列）
     const savedFoods = JSON.parse(localStorage.getItem("todayFoods")) || [];
-
-    // 新しいデータを追加
     savedFoods.push(foodData);
-
-    // 保存
     localStorage.setItem("todayFoods", JSON.stringify(savedFoods));
 
-    // 食事リスト更新（food.html の画面用）
     updateFoodList();
 
-    // 入力欄クリア
     document.getElementById("foodName").value = "";
     document.getElementById("calorie").value = "";
     document.getElementById("protein").value = "";
@@ -145,24 +123,9 @@ if (saveFoodBtn) {
     alert("保存しました");
   });
 }
+
 updateFoodList();
-// -------------------------
-// 食事データ保存
-// -------------------------
-function saveFoodToLocal(name, calorie, protein) {
-  const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
 
-  data.push({
-    name: name,
-    calorie: calorie,
-    protein: protein
-  });
-
-  localStorage.setItem("todayFoods", JSON.stringify(data));
-}
-// -------------------------
-// 食事リスト表示
-// -------------------------
 function updateFoodList() {
   const list = document.getElementById("foodList");
   if (!list) return;
@@ -176,6 +139,7 @@ function updateFoodList() {
     list.appendChild(li);
   });
 }
+
 // ===============================
 // ToDo 入力画面（todo.html）
 // ===============================
@@ -190,10 +154,7 @@ if (addTodoBtn) {
     }
 
     const data = JSON.parse(localStorage.getItem("todos") || "[]");
-
-    // ★ チェック機能対応の保存形式
     data.push({ text: text, done: false });
-
     localStorage.setItem("todos", JSON.stringify(data));
 
     document.getElementById("todoInput").value = "";
@@ -204,9 +165,7 @@ if (addTodoBtn) {
 
   updateTodoList();
 }
-// -------------------------
-// ToDo 表示（チェック機能つき）
-// -------------------------
+
 function updateTodoList() {
   const list = document.getElementById("todoList");
   if (!list) return;
@@ -216,6 +175,10 @@ function updateTodoList() {
 
   data.forEach((item, index) => {
     const li = document.createElement("li");
+    li.style.display = "flex";
+    li.style.alignItems = "center";
+    li.style.gap = "8px";
+    li.style.listStyle = "none";
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
@@ -235,11 +198,12 @@ function updateTodoList() {
       span.style.opacity = "0.6";
     }
 
-    li.appendChild(checkbox);
     li.appendChild(span);
+    li.appendChild(checkbox);
     list.appendChild(li);
   });
 }
+
 // ===============================
 // スケジュール入力画面（schedule.html）
 // ===============================
@@ -266,9 +230,7 @@ if (addPlanBtn) {
 
   updatePlanList();
 }
-// -------------------------
-// スケジュール表示
-// -------------------------
+
 function updatePlanList() {
   const list = document.getElementById("planList");
   if (!list) return;
@@ -282,6 +244,7 @@ function updatePlanList() {
     list.appendChild(li);
   });
 }
+
 // ===============================
 // ダッシュボード（index.html）
 // ===============================
@@ -293,6 +256,7 @@ function loadLatestWeight() {
   const el = document.getElementById("latestWeight");
   if (el) el.textContent = latest.weight + " kg";
 }
+
 function loadLatestBMI() {
   const height = localStorage.getItem("latestHeight");
   const data = JSON.parse(localStorage.getItem("weights") || "[]");
@@ -304,6 +268,7 @@ function loadLatestBMI() {
   const el = document.getElementById("latestBMI");
   if (el) el.textContent = "BMI: " + bmi;
 }
+
 function loadTodayCalorie() {
   const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
   let total = 0;
@@ -313,6 +278,26 @@ function loadTodayCalorie() {
   const el = document.getElementById("todayCalorie");
   if (el) el.textContent = "合計: " + total + " kcal";
 }
+
+function loadTodayFoodsDashboard() {
+  const list = document.getElementById("foodListDashboard");
+  if (!list) return;
+
+  const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
+  list.innerHTML = "";
+
+  data.forEach(item => {
+    const li = document.createElement("li");
+    li.style.display = "flex";
+    li.style.alignItems = "center";
+    li.style.gap = "8px";
+    li.style.listStyle = "none";
+
+    li.textContent = `${item.name}：${item.calorie} kcal / ${item.protein} g`;
+    list.appendChild(li);
+  });
+}
+
 function loadTodoDashboard() {
   const list = document.getElementById("todoListDashboard");
   if (!list) return;
@@ -322,16 +307,21 @@ function loadTodoDashboard() {
 
   data.forEach((item, index) => {
     const li = document.createElement("li");
+    li.style.display = "flex";
+    li.style.alignItems = "center";
+    li.style.gap = "8px";
+    li.style.listStyle = "none";
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = item.done;
-    // ★ ダッシュボードでもチェック可能にする
+
     checkbox.addEventListener("change", () => {
       data[index].done = checkbox.checked;
       localStorage.setItem("todos", JSON.stringify(data));
-      loadTodoDashboard(); // 見た目更新
+      loadTodoDashboard();
     });
+
     const span = document.createElement("span");
     span.textContent = item.text;
 
@@ -339,11 +329,13 @@ function loadTodoDashboard() {
       span.style.textDecoration = "line-through";
       span.style.opacity = "0.6";
     }
-    li.appendChild(checkbox);
+
     li.appendChild(span);
+    li.appendChild(checkbox);
     list.appendChild(li);
   });
 }
+
 function loadPlanDashboard() {
   const list = document.getElementById("planListDashboard");
   if (!list) return;
@@ -357,19 +349,7 @@ function loadPlanDashboard() {
     list.appendChild(li);
   });
 }
-function loadTodayFoodsDashboard() {
-  const list = document.getElementById("foodListDashboard");
-  if (!list) return;
 
-  const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
-  list.innerHTML = "";
-
-  data.forEach(item => {
-    const li = document.createElement("li");
-    li.textContent = `${item.name}：${item.calorie} kcal / ${item.protein} g`;
-    list.appendChild(li);
-  });
-}
 function loadMiniChart() {
   const data = JSON.parse(localStorage.getItem("weights") || "[]");
   const height = localStorage.getItem("latestHeight");
@@ -378,10 +358,7 @@ function loadMiniChart() {
 
   const labels = data.map(d => d.date);
   const weights = data.map(d => d.weight);
-  // ★ BMI の配列
-  const bmis = data.map(d => {
-    return (d.weight / ((height / 100) ** 2)).toFixed(1);
-  });
+  const bmis = data.map(d => (d.weight / ((height / 100) ** 2)).toFixed(1));
 
   const ctx = document.getElementById("miniChart");
   if (!ctx) return;
@@ -416,15 +393,13 @@ function loadMiniChart() {
     }
   });
 }
-// -------------------------
-// index.html 読み込み時
-// -------------------------
+
 window.addEventListener("DOMContentLoaded", () => {
   loadLatestWeight();
   loadLatestBMI();
   loadTodayCalorie();
+  loadTodayFoodsDashboard();
   loadTodoDashboard();
   loadPlanDashboard();
   loadMiniChart();
-  loadTodayFoodsDashboard();
 });

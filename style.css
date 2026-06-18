@@ -8,16 +8,24 @@ h1 {
   text-align: center;
 }
 
+/* カード */
 .card {
   background: white;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 250px;
+  height: 280px;
+}
+
+.graph-card {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  height: auto;
 }
 
 .card-container {
@@ -28,6 +36,7 @@ h1 {
   margin: 0 auto;
 }
 
+/* 入力系 */
 label {
   display: block;
   margin-top: 10px;
@@ -53,26 +62,10 @@ button {
   color: white;
 }
 
-.result {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-.menu button {
-  width: 100%;
-  padding: 15px;
-  margin: 10px 0;
-  font-size: 16px;
-  border: none;
-  border-radius: 8px;
-  background: #4CAF50;
-  color: white;
-}
-/* グラフの詰まり解消 */
+/* グラフ */
 canvas {
   width: 100% !important;
-  height: auto !important; /* ← 高さは自動にする */
+  height: auto !important;
 }
 
 .chart-container {
@@ -82,21 +75,26 @@ canvas {
   margin: 0 auto;
 }
 
-/* カードのボタン位置を揃える */
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-
+/* ToDo（入力画面 & ダッシュボード） */
+#todoList li,
+#todoListDashboard li {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 280px; /* ← ここを調整すると揃う */
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  padding: 4px 0;
 }
-.graph-card {
-  background: none;
-  box-shadow: none;
-  padding: 0;
-  height: auto; /* ← 高さを自動にする */
+
+#todoList li input[type="checkbox"],
+#todoListDashboard li input[type="checkbox"] {
+  transform: scale(1.2);
+}
+
+/* 食事リスト（ダッシュボード） */
+#foodListDashboard li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  padding: 4px 0;
 }
