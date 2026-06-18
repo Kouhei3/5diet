@@ -5,8 +5,8 @@
             "type": "java",
             "name": "Spring Boot アプリを起動",
             "request": "launch",
-            "mainClass": "com.example.diet.DietApplication",
-            "projectName": "exercise",
+            "mainClass": "com.example.demo.DemoApplication",
+            "projectName": "demo",
             "cwd": "${workspaceFolder}"
         },
         {
