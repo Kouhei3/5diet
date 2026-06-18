@@ -106,6 +106,7 @@ function updateChart() {
 // 食事入力画面（food.html）
 // ===============================
 const saveFoodBtn = document.getElementById("saveFoodBtn");
+
 if (saveFoodBtn) {
   saveFoodBtn.addEventListener("click", () => {
     const name = document.getElementById("foodName").value;
@@ -117,23 +118,39 @@ if (saveFoodBtn) {
       return;
     }
 
-    saveFoodToLocal(name, calorie, protein);
+    // 保存するデータ
+    const foodData = {
+      name: name,
+      calorie: Number(calorie),
+      protein: Number(protein)
+    };
+
+    // 既存データを取得（なければ空配列）
+    const savedFoods = JSON.parse(localStorage.getItem("todayFoods")) || [];
+
+    // 新しいデータを追加
+    savedFoods.push(foodData);
+
+    // 保存
+    localStorage.setItem("todayFoods", JSON.stringify(savedFoods));
+
+    // 食事リスト更新（food.html の画面用）
     updateFoodList();
 
+    // 入力欄クリア
     document.getElementById("foodName").value = "";
     document.getElementById("calorie").value = "";
     document.getElementById("protein").value = "";
 
     alert("保存しました");
   });
-
-  updateFoodList();
 }
+updateFoodList();
 // -------------------------
 // 食事データ保存
 // -------------------------
 function saveFoodToLocal(name, calorie, protein) {
-  const data = JSON.parse(localStorage.getItem("foods") || "[]");
+  const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
 
   data.push({
     name: name,
@@ -141,7 +158,7 @@ function saveFoodToLocal(name, calorie, protein) {
     protein: protein
   });
 
-  localStorage.setItem("foods", JSON.stringify(data));
+  localStorage.setItem("todayFoods", JSON.stringify(data));
 }
 // -------------------------
 // 食事リスト表示
@@ -150,7 +167,7 @@ function updateFoodList() {
   const list = document.getElementById("foodList");
   if (!list) return;
 
-  const data = JSON.parse(localStorage.getItem("foods") || "[]");
+  const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
 
   list.innerHTML = "";
   data.forEach(item => {
@@ -288,7 +305,7 @@ function loadLatestBMI() {
   if (el) el.textContent = "BMI: " + bmi;
 }
 function loadTodayCalorie() {
-  const data = JSON.parse(localStorage.getItem("foods") || "[]");
+  const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
   let total = 0;
 
   data.forEach(item => total += Number(item.calorie));
@@ -337,6 +354,19 @@ function loadPlanDashboard() {
   data.forEach(item => {
     const li = document.createElement("li");
     li.textContent = `${item.time}：${item.plan}`;
+    list.appendChild(li);
+  });
+}
+function loadTodayFoodsDashboard() {
+  const list = document.getElementById("foodListDashboard");
+  if (!list) return;
+
+  const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
+  list.innerHTML = "";
+
+  data.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.name}：${item.calorie} kcal / ${item.protein} g`;
     list.appendChild(li);
   });
 }
@@ -396,4 +426,5 @@ window.addEventListener("DOMContentLoaded", () => {
   loadTodoDashboard();
   loadPlanDashboard();
   loadMiniChart();
+  loadTodayFoodsDashboard();
 });
