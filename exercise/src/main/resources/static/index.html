@@ -98,7 +98,7 @@
         </div>
 
         <div class="sync-buttons">
-            <button class="sync-btn btn-ex" onclick="fetchAWSData('workout')">AWS筋トレ</button>
+            <button class="sync-btn btn-ex" onclick="fetchAWSData('workout')">AWS筋トレ同期</button>
             <button class="sync-btn btn-me" onclick="fetchAWSData('meal')">AWS食事</button>
             <button class="sync-btn btn-ev" onclick="fetchAWSData('workout-menu')">AWSメニュー</button>
         </div>
@@ -197,6 +197,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     calendar.render();
     updateDetailSection(selectedDateStr);
+    
+    // アプリ起動時に自動的にAWSから最新データを取得する
     Promise.all([
         fetchAWSData('workout'),
         fetchAWSData('meal'),
@@ -205,8 +207,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function fetchAWSData(type) {
+    // 【修正ポイント】あなたの app.js（/api/records）とエンドポイントを統一
     const endpoints = {
-        workout: 'http://localhost:8080/api/workout',
+        workout: 'http://localhost:8080/api/records',
         meal: 'http://localhost:8080/api/meal',
         'workout-menu': 'http://localhost:8080/api/workout-menu'
     };
@@ -230,21 +233,25 @@ async function fetchAWSData(type) {
 
         if (type === 'workout') {
             data.forEach(log => {
-                const dateValue = log.date || log.createdAt || log.workoutDate;
+                // あなたの app.js が送るオブジェクト構造（log.date, log.exercise）を解析
+                const dateValue = log.date;
                 if (!dateValue) return;
 
                 const start = dateValue.includes('T') ? dateValue : `${dateValue}T08:00:00`;
-                const exerciseName = log.exerciseName || log.exercise?.name || '筋トレ';
-                const exerciseType = log.exerciseType || log.exercise?.type;
+                
+                // 安全に種目名やタイプを取り出す
+                const exerciseName = log.exercise ? log.exercise.name : '筋トレ';
+                const exerciseType = log.exercise ? log.exercise.type : 'weight';
                 const reps = log.reps || 0;
                 const weight = log.weight || 0;
+                
                 const detailText = exerciseType === 'bodyweight'
                     ? `${reps}回`
                     : `${weight}kg × ${reps}回`;
                 const title = `💪 ${exerciseName} (${detailText})`;
 
                 addCalendarEvent({
-                    id: log.id ? `aws_workout_${log.id}` : `aws_workout_${start}`,
+                    id: log.id ? `aws_workout_${log.id}` : `aws_workout_${Date.now() + Math.random()}`,
                     title,
                     start,
                     category: 'exercise'
