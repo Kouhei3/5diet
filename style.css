@@ -95,8 +95,8 @@ canvas {
   height: 280px; /* ← ここを調整すると揃う */
 }
 .graph-card {
-  background: none; /* ← 白い背景を消す */
-  box-shadow: none; /* ← 影も消す（必要なら） */
-  padding: 0;       /* ← 余白も消すとより綺麗 */
+  background: none;
+  box-shadow: none;
+  padding: 0;
   height: auto; /* ← 高さを自動にする */
 }
