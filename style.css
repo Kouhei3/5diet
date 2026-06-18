@@ -11,9 +11,21 @@ h1 {
 .card {
   background: white;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 250px;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 label {
@@ -44,7 +56,7 @@ button {
 .result {
   background: white;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 .menu button {
@@ -56,4 +68,35 @@ button {
   border-radius: 8px;
   background: #4CAF50;
   color: white;
+}
+/* グラフの詰まり解消 */
+canvas {
+  width: 100% !important;
+  height: auto !important; /* ← 高さは自動にする */
+}
+
+.chart-container {
+  width: 100%;
+  max-width: 800px;
+  height: 800px;
+  margin: 0 auto;
+}
+
+/* カードのボタン位置を揃える */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 280px; /* ← ここを調整すると揃う */
+}
+.graph-card {
+  background: none; /* ← 白い背景を消す */
+  box-shadow: none; /* ← 影も消す（必要なら） */
+  padding: 0;       /* ← 余白も消すとより綺麗 */
+  height: auto; /* ← 高さを自動にする */
 }
