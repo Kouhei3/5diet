@@ -319,11 +319,6 @@ function loadTodoDashboard() {
     const span = document.createElement("span");
     span.textContent = item.text;
 
-    if (item.done) {
-      span.style.textDecoration = "line-through";
-      span.style.opacity = "0.6";
-    }
-
     li.appendChild(span);
     li.appendChild(checkbox);
     list.appendChild(li);
