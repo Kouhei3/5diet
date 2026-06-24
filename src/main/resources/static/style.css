@@ -43,7 +43,6 @@ body {
 }
 .btn-primary:active { opacity: 0.8; }
 .btn-text { background: none; border: none; color: var(--primary); font-weight: 600; font-size: 15px; padding: 0; cursor: pointer; }
-/* Small button variants used for edit/delete controls */
 .btn-small {
     display: inline-flex; align-items: center; justify-content: center;
     padding: 6px 10px; border-radius: 12px; border: 1px solid var(--border);
@@ -55,12 +54,9 @@ body {
 .btn-outline { background: transparent; border: 1px solid rgba(0,122,255,0.12); color: var(--primary); box-shadow: none; }
 .btn-danger { background: linear-gradient(90deg,#ff3b30 0%, #ff6b5a 100%); color: white; border: none; box-shadow: 0 8px 22px rgba(255,59,48,0.16); }
 
-/* Container for exercise item controls */
 .ex-controls { display: flex; gap: 8px; align-items: center; }
-/* 右寄せ用（履歴カードで使う） */
 .ex-controls.right { margin-left: auto; }
 
-/* History delete button tweaks */
 .log-delete-btn { margin-left: 12px; background: transparent; border: none; color: #ff3b30; font-weight: 800; cursor: pointer; }
 .log-delete-btn:hover { opacity: 0.9; transform: translateY(-2px); }
 .btn-round {
@@ -127,7 +123,7 @@ body {
 .date-today { font-size: 13px; color: var(--primary); font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 2px; }
 
 /* =========================================
-   切り替えタブ (新規デザイン)
+   切り替えタブ
 ========================================= */
 .filter-tabs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; background: white; padding: 12px; border-radius: 16px; box-shadow: var(--shadow-card); }
 .tab-row { display: flex; background: #e5e5ea; border-radius: 10px; padding: 2px; }
@@ -155,7 +151,7 @@ body {
 .cat-name { font-size: 16px; font-weight: 700; color: #1c1c1e; }
 .cat-ename { font-size: 10px; color: var(--text-sub); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
 
-/* 種目リストアイテム (レベルバッジ対応) */
+/* 種目リストアイテム */
 .exercise-list { display: flex; flex-direction: column; gap: 8px; }
 .ex-item { background: white; padding: 14px 18px; border-radius: 16px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .ex-info { display: flex; flex-direction: column; gap: 4px; }
@@ -187,7 +183,6 @@ body {
 .value-display .unit { font-size: 14px; color: var(--text-sub); font-weight: 600; margin-left: 2px; }
 .btn-gradient-record { width: 100%; background: var(--primary-gradient); color: white; border: none; padding: 20px; border-radius: 18px; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(0, 122, 255, 0.3); }
 
-/* 直接入力のスタイル & 警告対策 */
 .value-input { font-size: 32px; font-weight: 800; color: var(--text-main); font-variant-numeric: tabular-nums; border: none; background: transparent; width: 70px; text-align: right; outline: none; padding: 0; font-family: inherit; }
 .value-input::-webkit-inner-spin-button, 
 .value-input::-webkit-outer-spin-button { 
@@ -203,9 +198,7 @@ body {
 /* 自重モード用の非表示クラス */
 .hide-weight { display: none !important; }
 
-/* =========================================
-   履歴画面
-========================================= */
+/* 履歴画面 */
 .history-filter-zone { margin-bottom: 20px; }
 .timeline-list { display: flex; flex-direction: column; gap: 12px; }
 .log-card { display: flex; gap: 15px; align-items: center; padding: 15px; }

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>筋トレ記録</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="app-logo">WORK<span class="logo-accent">OUT</span></h1>
+            <div class="page-title" id="header-title">部位選択</div>
+        </header>
+
+        <main class="app-main">
+            <div id="screen-categories" class="screen active">
+                <div class="section-header">
+                    <span class="date-today" id="today-date-text">TODAY</span>
+                    <h3>鍛える部位を選択</h3>
+                </div>
+                <div class="category-grid" id="category-grid">
+                    </div>
+            </div>
+
+            <div id="sub-screen-exercises" class="sub-screen">
+                <div class="action-bar">
+                    <button class="btn-small btn-outline" id="btn-back-to-cats">← 戻る</button>
+                    <h3 id="selected-category-title">胸の種目</h3>
+                </div>
+
+                <div class="filter-tabs">
+                    <div class="tab-row">
+                        <button class="home-type-btn active" data-type="all">すべて</button>
+                        <button class="home-type-btn" data-type="weight">ウエイト</button>
+                        <button class="home-type-btn" data-type="bodyweight">自重</button>
+                    </div>
+                    <div class="tab-row">
+                        <button class="home-level-btn active" data-level="all">全レベル</button>
+                        <button class="home-level-btn" data-level="beginner">初級</button>
+                        <button class="home-level-btn" data-level="middle">中級</button>
+                        <button class="home-level-btn" data-level="advanced">上級</button>
+                    </div>
+                </div>
+
+                <div class="card custom-add-box">
+                    <div class="custom-add-row">
+                        <input type="text" id="custom-exercise-name" placeholder="新しい種目名を入力...">
+                        <select id="custom-exercise-type" style="padding: 4px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px;">
+                            <option value="weight">ウエイト</option>
+                            <option value="bodyweight">自重</option>
+                        </select>
+                        <button class="btn-add" id="btn-add-custom">＋</button>
+                    </div>
+                </div>
+
+                <div class="exercise-list" id="exercise-list-container">
+                    </div>
+            </div>
+
+            <div id="sub-screen-input" class="sub-screen">
+                <div class="action-bar">
+                    <button class="btn-small btn-outline" id="btn-back-to-exs">← 戻る</button>
+                    <h3 id="selected-exercise-title">ベンチプレス</h3>
+                </div>
+
+                <div class="exercise-desc-box" id="exercise-desc">
+                    バーベルを胸の位置まで下ろし、垂直に押し上げます。大胸筋全体を効果的に鍛えることができます。
+                </div>
+
+                <div class="previous-record-badge" id="prev-record-text">
+                    前回の記録: まだ記録がありません
+                </div>
+
+                <div class="counter-group">
+                    <div class="card counter-card" id="weight-counter-card">
+                        <label>重量</label>
+                        <div class="counter-controls">
+                            <button class="btn-round" id="btn-weight-minus">−</button>
+                            <div class="value-display">
+                                <input type="number" id="weight-val" class="value-input" value="40" step="2.5">
+                                <span class="unit">kg</span>
+                            </div>
+                            <button class="btn-round plus" id="btn-weight-plus">＋</button>
+                        </div>
+                    </div>
+
+                    <div class="card counter-card">
+                        <label>回数</label>
+                        <div class="counter-controls">
+                            <button class="btn-round" id="btn-reps-minus">−</button>
+                            <div class="value-display">
+                                <input type="number" id="reps-val" class="value-input" value="10" step="1">
+                                <span class="unit">回</span>
+                            </div>
+                            <button class="btn-round plus" id="btn-reps-plus">＋</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-gradient-record animate-press" id="btn-save-log">この内容で記録する</button>
+            </div>
+
+            <div id="screen-history" class="screen">
+                <div class="section-header">
+                    <h3>トレーニング履歴</h3>
+                </div>
+                <div class="timeline-list" id="history-timeline">
+                    </div>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-target="screen-categories">
+                <div class="nav-icon">🏋️</div>
+                <div class="nav-text">ワークアウト</div>
+            </button>
+            <button class="nav-item" onclick="window.location.href='/index.html'">
+                <div class="nav-icon">📅</div>
+                <div class="nav-text">カレンダー</div>
+            </button>
+            <button class="nav-item" data-target="screen-history">
+                <div class="nav-icon">📝</div>
+                <div class="nav-text">履歴リスト</div>
+            </button>
+        </nav>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

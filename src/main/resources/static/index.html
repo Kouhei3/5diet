@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スケジュール＆履歴管理 - カレンダー</title>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0; padding: 0; background-color: #1c1c1e;
+            display: flex; justify-content: center; min-height: 100vh;
+        }
+        .phone-container {
+            width: 100%; max-width: 430px; background: #f2f2f7;
+            min-height: 100vh; display: flex; flex-direction: column;
+            box-sizing: border-box; box-shadow: 0 0 40px rgba(0,0,0,0.2);
+            padding-bottom: 90px; position: relative;
+        }
+        
+        /* カレンダーエリア */
+        .calendar-section { padding: 10px; background: white; border-bottom: 1px solid #e5e5ea; }
+        #calendar { font-size: 0.85rem; color: #1c1c1e; }
+
+        /* 下部：履歴・詳細エリア */
+        .detail-section { flex: 1; padding: 15px; background-color: #f2f2f7; overflow-y: auto; }
+        .selected-date-title { font-size: 1.1rem; margin: 0 0 10px 0; color: #1c1c1e; font-weight: bold; }
+        
+        /* 履歴のリスト項目 */
+        .history-list { list-style: none; padding: 0; margin: 0; }
+        .history-item {
+            padding: 12px; border-radius: 12px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: white;
+        }
+        /* カテゴリ別の色 */
+        .item-event { border-left: 5px solid #ff9500; color: #1c1c1e; } /* 予定: オレンジ */
+        .item-exercise { border-left: 5px solid #007aff; color: #1c1c1e; } /* 運動: 青 */
+        .item-meal { border-left: 5px solid #34c759; color: #1c1c1e; } /* 食事: 緑 */
+        
+        .delete-text { font-size: 0.8rem; color: #ff3b30; cursor: pointer; text-decoration: underline; font-weight: bold; }
+        .no-data { color: #8e8e93; font-size: 0.85rem; text-align: center; margin-top: 20px; }
+
+        .manual-form {
+            display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 15px;
+            background: white; padding: 15px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .manual-form input,
+        .manual-form select,
+        .manual-form button {
+            width: 100%; box-sizing: border-box; padding: 12px;
+            border-radius: 10px; border: 1px solid #e5e5ea; font-size: 0.85rem; outline: none;
+        }
+        .manual-form button {
+            background: linear-gradient(135deg, #007aff 0%, #00c6ff 100%);
+            color: white; border: none; cursor: pointer; font-weight: bold; font-size: 14px;
+        }
+
+        .sync-buttons { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .sync-btn {
+            padding: 10px 4px; border: none; border-radius: 8px;
+            font-size: 0.75rem; font-weight: bold; cursor: pointer; color: white;
+        }
+        .btn-ev { background-color: #ff9500; }
+        .btn-ex { background-color: #007aff; }
+        .btn-me { background-color: #34c759; }
+
+        /* ナビゲーション */
+        .bottom-nav {
+            height: 83px; background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(0,0,0,0.05); position: fixed; bottom: 0; width: 100%; max-width: 430px;
+            z-index: 100; display: flex; justify-content: space-around; padding-top: 8px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.03); border-radius: 20px 20px 0 0;
+        }
+        .nav-item { background: none; border: none; color: #a2a2a7; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 70px; padding: 0; }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+        .nav-text { font-size: 10px; font-weight: 700; }
+        .nav-item.active { color: #007aff; }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <div class="calendar-section">
+        <div id="calendar"></div>
+    </div>
+
+    <div class="detail-section">
+        <div class="selected-date-title" id="targetDateText">日付を選択してください</div>
+        
+        <ul class="history-list" id="historyList"></ul>
+
+        <div class="manual-form">
+            <h4 style="margin:0 0 5px 0; color:#1c1c1e;">手動でスケジュール追加</h4>
+            <select id="manualCategory">
+                <option value="event">予定</option>
+                <option value="exercise">運動</option>
+                <option value="meal">食事</option>
+            </select>
+            <input id="manualTitle" type="text" placeholder="チートデイ、ランニングなど自由に入力">
+            <input id="manualDate" type="date">
+            <input id="manualTime" type="time">
+            <button onclick="addManualSchedule()">＋カレンダーに追加</button>
+        </div>
+
+        <div class="sync-buttons">
+            <button class="sync-btn btn-ex" onclick="fetchAWSData('workout')">AWS筋トレ同期</button>
+            <button class="sync-btn btn-me" onclick="fetchAWSData('meal')">AWS食事</button>
+            <button class="sync-btn btn-ev" onclick="fetchAWSData('workout-menu')">AWSメニュー</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-item" onclick="window.location.href='/exercise.html'">
+            <div class="nav-icon">🏋️</div>
+            <div class="nav-text">ワークアウト</div>
+        </button>
+        <button class="nav-item active">
+            <div class="nav-icon">📅</div>
+            <div class="nav-text">カレンダー</div>
+        </button>
+        <button class="nav-item" onclick="window.location.href='/exercise.html'">
+            <div class="nav-icon">📝</div>
+            <div class="nav-text">履歴リスト</div>
+        </button>
+    </nav>
+</div>
+
+<script>
+let calendar;
+let selectedDateStr = getDateString(new Date());
+let savedEvents = JSON.parse(localStorage.getItem('dietAppEvents')) || [];
+
+function getDateString(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function setDateInputs(dateStr) {
+    const dateInput = document.getElementById('manualDate');
+    const timeInput = document.getElementById('manualTime');
+    if (dateInput) dateInput.value = dateStr;
+    if (timeInput && !timeInput.value) timeInput.value = '08:00';
+}
+
+function saveEvents() {
+    localStorage.setItem('dietAppEvents', JSON.stringify(savedEvents));
+}
+
+function getEventDateKey(dateValue) {
+    const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+    return getDateString(date);
+}
+
+function getDisplayTime(dateValue) {
+    const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+    const h = String(date.getHours()).padStart(2, '0');
+    const m = String(date.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
+}
+
+function addCalendarEvent(eventData) {
+    const id = eventData.id || String(Date.now() + Math.random());
+    const category = eventData.category || 'event';
+    const title = eventData.title || '予定';
+    const start = eventData.start || `${selectedDateStr}T08:00:00`;
+
+    let backgroundColor = '#ff9500';
+    if (category === 'exercise') backgroundColor = '#007aff';
+    if (category === 'meal') backgroundColor = '#34c759';
+
+    const newEvent = {
+        id,
+        title,
+        start,
+        backgroundColor,
+        borderColor: backgroundColor,
+        extendedProps: {
+            category,
+            rawData: eventData
+        }
+    };
+
+    if (!calendar.getEventById(id)) {
+        calendar.addEvent(newEvent);
+    }
+
+    if (!savedEvents.some(ev => ev.id === id)) {
+        savedEvents.push(newEvent);
+        saveEvents();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    setDateInputs(selectedDateStr);
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'ja',
+        headerToolbar: { left: 'prev', center: 'title', right: 'next' },
+        height: 'auto',
+        events: savedEvents,
+        dateClick: function(info) {
+            selectedDateStr = info.dateStr;
+            setDateInputs(selectedDateStr);
+            updateDetailSection(selectedDateStr);
+        },
+        eventClick: function(info) {
+            const dateStr = info.event.startStr.split('T')[0];
+            selectedDateStr = dateStr;
+            setDateInputs(selectedDateStr);
+            updateDetailSection(dateStr);
+        }
+    });
+
+    calendar.render();
+    updateDetailSection(selectedDateStr);
+    
+    // 起動時にAWS RDSから自動同期する
+    Promise.all([
+        fetchAWSData('workout'),
+        fetchAWSData('meal'),
+        fetchAWSData('workout-menu')
+    ]);
+});
+
+async function fetchAWSData(type) {
+    const endpoints = {
+        workout: '/api/records',
+        meal: '/api/meal',
+        'workout-menu': '/api/workout-menu'
+    };
+
+    const targetUrl = endpoints[type];
+    if (!targetUrl) return;
+
+    try {
+        const response = await fetch(targetUrl, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+
+        const data = await response.json();
+
+        if (type === 'workout') {
+            data.forEach(log => {
+                const dateValue = log.date;
+                if (!dateValue) return;
+
+                const start = dateValue.includes('T') ? dateValue : `${dateValue}T08:00:00`;
+                
+                const exerciseName = log.exercise ? log.exercise.name : '筋トレ';
+                const exerciseType = log.exercise ? log.exercise.type : 'weight';
+                const reps = log.reps || 0;
+                const weight = log.weight || 0;
+                
+                const detailText = exerciseType === 'bodyweight'
+                    ? `${reps}回`
+                    : `${weight}kg × ${reps}回`;
+                const title = `💪 ${exerciseName} (${detailText})`;
+
+                addCalendarEvent({
+                    id: log.id ? `aws_workout_${log.id}` : `aws_workout_${Date.now() + Math.random()}`,
+                    title,
+                    start,
+                    category: 'exercise'
+                });
+            });
+        }
+        // (meal や menu のパースロジックはマスタ連動に合わせてそのまま維持)
+
+        updateDetailSection(selectedDateStr);
+        console.log(`${type} の同期が完了しました`);
+    } catch (error) {
+        console.error(`${type} の同期に失敗しました:`, error);
+    }
+}
+
+function updateDetailSection(dateStr) {
+    selectedDateStr = dateStr;
+    document.getElementById('targetDateText').innerText = `${dateStr} の記録・予定`;
+
+    const listEl = document.getElementById('historyList');
+    listEl.innerHTML = '';
+
+    const todaysEvents = calendar.getEvents().filter(ev => {
+        const evDateStr = getEventDateKey(ev.start);
+        return evDateStr === dateStr;
+    });
+
+    todaysEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+    if (todaysEvents.length === 0) {
+        listEl.innerHTML = '<li class="no-data">この日の予定・履歴はありません</li>';
+        return;
+    }
+
+    todaysEvents.forEach(ev => {
+        const li = document.createElement('li');
+        const category = ev.extendedProps.category || 'event';
+        li.className = `history-item item-${category}`;
+
+        const timeStr = getDisplayTime(ev.start);
+        li.innerHTML = `
+            <div><strong>[${timeStr}]</strong> ${ev.title}</div>
+            <div class="delete-text" onclick="deleteItem('${ev.id}')">削除</div>
+        `;
+        listEl.appendChild(li);
+    });
+}
+
+function deleteItem(id) {
+    if (confirm('この記録をカレンダーから削除しますか？')) {
+        const ev = calendar.getEventById(id);
+        if (ev) ev.remove();
+        savedEvents = savedEvents.filter(event => event.id !== id);
+        saveEvents();
+        updateDetailSection(selectedDateStr);
+    }
+}
+
+function addManualSchedule() {
+    const category = document.getElementById('manualCategory').value;
+    const title = document.getElementById('manualTitle').value.trim();
+    const date = document.getElementById('manualDate').value || selectedDateStr;
+    const time = document.getElementById('manualTime').value || '08:00';
+
+    if (!title) {
+        alert('タイトルを入力してください');
+        return;
+    }
+
+    const start = `${date}T${time}:00`;
+    const id = `manual_${Date.now()}`;
+    const displayTitle = category === 'exercise'
+        ? `💪 ${title}`
+        : category === 'meal'
+            ? `🍳 ${title}`
+            : `📅 ${title}`;
+
+    addCalendarEvent({
+        id,
+        title: displayTitle,
+        start,
+        category
+    });
+
+    updateDetailSection(selectedDateStr);
+}
+</script>
+
+</body>
+</html>
