@@ -101,9 +101,17 @@ canvas {
 
 /* 食事リスト（ダッシュボード） */
 #foodListDashboard li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   list-style: none;
-  padding: 4px 0;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+#foodListDashboard li div:first-child {
+  font-size: 16px;
+  margin-bottom: 4px; /* ← 食品名と成分の間に隙間 */
+}
+
+#foodListDashboard li div:last-child {
+  font-size: 13px;
+  color: #555;
 }
