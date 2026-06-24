@@ -25,11 +25,10 @@ if (saveWeightBtn) {
     const today = new Date().toLocaleDateString("ja-JP");
     localStorage.setItem("lastWeightDate", today);
 
-    updateChart();
     alert("保存しました");
+    location.href = "index.html";
   });
 
-  updateChart();
 }
 
 function saveWeightToLocal(weight) {
@@ -114,30 +113,18 @@ if (saveFoodBtn) {
     savedFoods.push(foodData);
     localStorage.setItem("todayFoods", JSON.stringify(savedFoods));
 
-    updateFoodList();
-
     document.getElementById("foodName").value = "";
     document.getElementById("calorie").value = "";
     document.getElementById("protein").value = "";
 
     alert("保存しました");
+    location.href = "index.html";
   });
 }
-
-updateFoodList();
 
 function updateFoodList() {
   const list = document.getElementById("foodList");
   if (!list) return;
-
-  const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
-
-  list.innerHTML = "";
-  data.forEach(item => {
-    const li = document.createElement("li");
-    li.textContent = `${item.name}：${item.calorie} kcal / ${item.protein} g`;
-    list.appendChild(li);
-  });
 }
 
 // ===============================
@@ -159,8 +146,8 @@ if (addTodoBtn) {
 
     document.getElementById("todoInput").value = "";
 
-    updateTodoList();
     alert("追加しました");
+    location.href = "index.html";
   });
 
   updateTodoList();
@@ -224,8 +211,8 @@ if (addPlanBtn) {
 
     document.getElementById("planInput").value = "";
 
-    updatePlanList();
     alert("追加しました");
+    location.href = "index.html";
   });
 
   updatePlanList();
@@ -287,14 +274,21 @@ function loadTodayFoodsDashboard() {
   list.innerHTML = "";
 
   data.forEach(item => {
-    const li = document.createElement("li");
-    li.style.display = "flex";
-    li.style.alignItems = "center";
-    li.style.gap = "8px";
-    li.style.listStyle = "none";
+  const li = document.createElement("li");
 
-    li.textContent = `${item.name}：${item.calorie} kcal / ${item.protein} g`;
-    list.appendChild(li);
+  const name = document.createElement("div");
+  name.textContent = item.name;
+  name.style.fontWeight = "bold";
+  name.style.whiteSpace = "nowrap";
+
+  const detail = document.createElement("div");
+  detail.textContent = `カロリー：${item.calorie} kcal　タンパク質：${item.protein} g`;
+  detail.style.fontSize = "14px";
+  detail.style.opacity = "0.8";
+
+  li.appendChild(name);
+  li.appendChild(detail);
+  list.appendChild(li);
   });
 }
 
