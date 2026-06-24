@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>食事カロリー管理</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <main class="container">
+
+    <h1>食事カロリー管理</h1>
+
+    <section class="card">
+      <h2>食事を記録</h2>
+
+      <label for="searchFood">食品検索</label>
+      <input
+        type="text"
+        id="searchFood"
+        placeholder="例：白米、サラダ、卵"
+        oninput="filterFoods()">
+
+      <label for="foodSelect">食品</label>
+      <select id="foodSelect"></select>
+
+      <label for="amount">食べた量(g)</label>
+      <input type="number" id="amount" placeholder="例：150">
+
+      <label for="mealType">食事タイプ</label>
+      <select id="mealType">
+        <option value="朝食">朝食</option>
+        <option value="昼食">昼食</option>
+        <option value="夕食">夕食</option>
+        <option value="間食">間食</option>
+      </select>
+
+      <button onclick="addMeal()">記録する</button>
+    </section>
+
+    <section class="card">
+      <h2>今日の合計</h2>
+
+      <div class="result-box">
+        <p>摂取カロリー</p>
+        <strong><span id="totalCalorie">0</span> kcal</strong>
+      </div>
+
+      <div class="target-box">
+        <p>目標カロリー：<span id="targetCalorie">1800</span> kcal</p>
+        <p>残り：<span id="remainingCalorie">1800</span> kcal</p>
+      </div>
+
+      <div class="pfc-grid">
+        <div>
+          <p>P</p>
+          <strong><span id="protein">0</span> g</strong>
+          <small><span id="proteinRatio">0</span>%</small>
+        </div>
+
+        <div>
+          <p>F</p>
+          <strong><span id="fat">0</span> g</strong>
+          <small><span id="fatRatio">0</span>%</small>
+        </div>
+
+        <div>
+          <p>C</p>
+          <strong><span id="carbs">0</span> g</strong>
+          <small><span id="carbsRatio">0</span>%</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>今日の食事履歴</h2>
+      <ul id="mealHistory" class="history-list"></ul>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
