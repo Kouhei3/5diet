@@ -121,7 +121,7 @@
             <div class="nav-icon">📅</div>
             <div class="nav-text">カレンダー</div>
         </button>
-        <button class="nav-item" onclick="window.location.href='/exercise.html'">
+        <button class="nav-item" onclick="window.location.href='/history.html'">
             <div class="nav-icon">📝</div>
             <div class="nav-text">履歴リスト</div>
         </button>
@@ -266,7 +266,6 @@ async function fetchAWSData(type) {
                 const title = `💪 ${exerciseName} (${detailText})`;
 
                 addCalendarEvent({
-                    // 🌟 ここでAWSのIDを覚えさせています！
                     id: log.id ? `aws_workout_${log.id}` : `aws_workout_${Date.now() + Math.random()}`,
                     title,
                     start,
@@ -274,7 +273,6 @@ async function fetchAWSData(type) {
                 });
             });
         }
-        // (meal や menu のパースロジックはマスタ連動に合わせてそのまま維持)
 
         updateDetailSection(selectedDateStr);
         console.log(`${type} の同期が完了しました`);
@@ -316,18 +314,17 @@ function updateDetailSection(dateStr) {
     });
 }
 
-// 🌟 ここが超重要！削除機能をAWS通信対応（async）に書き換えました！
 async function deleteItem(id) {
     if (confirm('この記録をカレンダーから完全に削除しますか？\n（データベースからも削除されます）')) {
         
-        // もし AWS の筋トレデータなら、APIを叩いてデータベースから削除！
+        // AWS のデータなら、APIを叩いてデータベースから削除
         if (id.startsWith('aws_workout_')) {
-            const dbId = id.replace('aws_workout_', ''); // 実際のIDの数字だけを取り出す
+            const dbId = id.replace('aws_workout_', '');
             try {
                 const response = await fetch(`/api/records/${dbId}`, { method: 'DELETE' });
                 if (!response.ok) {
                     alert('データベースからの削除に失敗しました。');
-                    return; // 失敗したらカレンダーからも消さない
+                    return; 
                 }
                 console.log(`AWS RDSのデータ (ID: ${dbId}) を削除しました。`);
             } catch (error) {
@@ -337,7 +334,7 @@ async function deleteItem(id) {
             }
         }
 
-        // ここから下は元の処理（画面のカレンダーとローカルメモリから消す）
+        // 画面とローカルメモリから消す
         const ev = calendar.getEventById(id);
         if (ev) ev.remove();
         savedEvents = savedEvents.filter(event => event.id !== id);
