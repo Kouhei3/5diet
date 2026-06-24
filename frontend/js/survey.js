@@ -1,10 +1,12 @@
 /**
  * 5DIET – survey.js
- * 初回アンケートのロジック
+ * 初回アンケートのロジック（マルチステップ対応）
+ * ・STEPごとのページ切替（戻る／次へ／送信）
  * ・BMI リアルタイム計算
  * ・残り日数リアルタイム更新
  * ・「その他」選択時のテキストエリア表示
- * ・バリデーション & 送信処理
+ * ・STEPごとのバリデーション & 送信処理
+ * ・あと何問あるかのリアルタイム表示
  */
 
 "use strict";
@@ -13,6 +15,8 @@
    DOM 参照
    ===================================================== */
 const form = document.getElementById("surveyForm");
+const steps = Array.from(form.querySelectorAll(".card[data-section]"));
+const totalSteps = steps.length;
 
 const heightInput = document.getElementById("height");
 const weightInput = document.getElementById("weight");
@@ -27,6 +31,106 @@ const purposeOtherWrap = document.getElementById("purposeOtherWrap");
 const purposeOtherInput = document.getElementById("purposeOther");
 
 const progressBar = document.getElementById("progressBar");
+const stepCurrentLabel = document.getElementById("stepCurrentLabel");
+
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const submitBtn = document.getElementById("submitBtn");
+const submitNote = document.getElementById("submitNote");
+const remainingCountEl = document.getElementById("remainingCount");
+
+/* =====================================================
+   ステップ状態
+   ===================================================== */
+let currentStep = 0; // 0-indexed
+
+/* 全STEPの必須項目総数をあらかじめ数える（「その他」欄は動的なので除外して都度加算） */
+function countRequiredInStep(stepEl) {
+  // hidden になっている required は数えない（例: purposeOther 非表示時）
+  const requiredEls = Array.from(stepEl.querySelectorAll("[required]")).filter(
+    (el) => !el.closest(".hidden"),
+  );
+  // ラジオは name ごとに1つとして数える
+  const radioNames = new Set();
+  let count = 0;
+  requiredEls.forEach((el) => {
+    if (el.type === "radio") {
+      if (!radioNames.has(el.name)) {
+        radioNames.add(el.name);
+        count++;
+      }
+    } else {
+      count++;
+    }
+  });
+  return count;
+}
+
+function isFilledInStep(stepEl) {
+  const requiredEls = Array.from(stepEl.querySelectorAll("[required]")).filter(
+    (el) => !el.closest(".hidden"),
+  );
+  const radioNames = new Set();
+  let filled = 0;
+  requiredEls.forEach((el) => {
+    if (el.type === "radio") {
+      if (!radioNames.has(el.name)) {
+        radioNames.add(el.name);
+        if (form.querySelector(`[name="${el.name}"]:checked`)) filled++;
+      }
+    } else if (el.value.trim() !== "") {
+      filled++;
+    }
+  });
+  return filled;
+}
+
+/* =====================================================
+   ステップ表示切替
+   ===================================================== */
+function showStep(index) {
+  steps.forEach((step, i) => {
+    step.classList.toggle("active", i === index);
+  });
+
+  stepCurrentLabel.textContent = `STEP ${index + 1} / ${totalSteps}`;
+
+  const isFirst = index === 0;
+  const isLast = index === totalSteps - 1;
+
+  prevBtn.classList.toggle("invisible", isFirst);
+  nextBtn.classList.toggle("hidden", isLast);
+  submitBtn.classList.toggle("hidden", !isLast);
+  submitNote.classList.toggle("hidden", !isLast);
+
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* =====================================================
+   進捗バー & 残り問題数 更新
+   ===================================================== */
+function updateProgress() {
+  // 全体の必須項目数・回答済み数を集計
+  let totalRequired = 0;
+  let totalFilled = 0;
+
+  steps.forEach((step) => {
+    totalRequired += countRequiredInStep(step);
+    totalFilled += isFilledInStep(step);
+  });
+
+  const pct =
+    totalRequired > 0
+      ? Math.min(100, Math.round((totalFilled / totalRequired) * 100))
+      : 0;
+  progressBar.style.width = pct + "%";
+
+  const remaining = Math.max(0, totalRequired - totalFilled);
+  if (remainingCountEl) {
+    remainingCountEl.textContent = remaining;
+  }
+}
 
 /* =====================================================
    BMI 計算
@@ -125,55 +229,8 @@ purposeSelect.addEventListener("change", function () {
     purposeOtherInput.value = "";
     clearError("purposeOther");
   }
+  updateProgress();
 });
-
-/* =====================================================
-   プログレスバー更新
-   ===================================================== */
-function updateProgress() {
-  const required = form.querySelectorAll("[required]");
-  let filled = 0;
-
-  required.forEach((el) => {
-    if (el.type === "radio") {
-      const checked = form.querySelector(`[name="${el.name}"]:checked`);
-      if (checked) filled++;
-    } else if (el.value.trim() !== "") {
-      filled++;
-    }
-  });
-
-  // ラジオは name ごとに1つ分だけカウント
-  const radioNames = [
-    ...new Set(
-      [...form.querySelectorAll('input[type="radio"][required]')].map(
-        (r) => r.name,
-      ),
-    ),
-  ];
-  const otherRequiredCount =
-    required.length -
-    form.querySelectorAll('input[type="radio"][required]').length;
-  const totalCount = otherRequiredCount + radioNames.length;
-
-  // ラジオ分再計算
-  let filledCount = 0;
-  radioNames.forEach((name) => {
-    if (form.querySelector(`[name="${name}"]:checked`)) filledCount++;
-  });
-  form.querySelectorAll('[required]:not([type="radio"])').forEach((el) => {
-    if (el.value.trim() !== "" && !el.closest(".hidden")) filledCount++;
-  });
-
-  const pct =
-    totalCount > 0
-      ? Math.min(100, Math.round((filledCount / totalCount) * 100))
-      : 0;
-  progressBar.style.width = pct + "%";
-}
-
-form.addEventListener("input", updateProgress);
-form.addEventListener("change", updateProgress);
 
 /* =====================================================
    バリデーション ユーティリティ
@@ -199,112 +256,140 @@ function clearAllErrors() {
   form.querySelectorAll(".error").forEach((el) => el.classList.remove("error"));
 }
 
+function clearErrorsInStep(stepEl) {
+  stepEl.querySelectorAll(".err-msg").forEach((el) => (el.textContent = ""));
+  stepEl.querySelectorAll(".error").forEach((el) => el.classList.remove("error"));
+}
+
 /* =====================================================
-   フォームバリデーション
+   STEPごとのバリデーション
    ===================================================== */
-function validateForm() {
-  clearAllErrors();
+function validateStep(index) {
+  const stepEl = steps[index];
+  clearErrorsInStep(stepEl);
   let valid = true;
 
-  // 性別
-  if (!form.querySelector('[name="gender"]:checked')) {
-    showError("gender", "性別を選択してください。");
-    valid = false;
-  }
-
-  // 年齢
-  const age = parseInt(document.getElementById("age").value, 10);
-  if (!age || age < 10 || age > 100) {
-    showError("age", "10〜100の範囲で年齢を入力してください。");
-    valid = false;
-  }
-
-  // 身長
-  const height = parseFloat(heightInput.value);
-  if (!height || height < 100 || height > 250) {
-    showError("height", "100〜250cmの範囲で身長を入力してください。");
-    valid = false;
-  }
-
-  // 体重
-  const weight = parseFloat(weightInput.value);
-  if (!weight || weight < 20 || weight > 300) {
-    showError("weight", "20〜300kgの範囲で体重を入力してください。");
-    valid = false;
-  }
-
-  // 目標体重
-  const goalWeight = parseFloat(document.getElementById("goalWeight").value);
-  if (!goalWeight || goalWeight < 20 || goalWeight > 300) {
-    showError("goalWeight", "20〜300kgの範囲で目標体重を入力してください。");
-    valid = false;
-  }
-
-  // 目標達成日
-  const goalDate = goalDateInput.value;
-  if (!goalDate) {
-    showError("goalDate", "目標達成日を選択してください。");
-    valid = false;
-  } else {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const target = new Date(goalDate);
-    target.setHours(0, 0, 0, 0);
-    if (target <= today) {
-      showError("goalDate", "今日より未来の日付を選択してください。");
+  // ---------- STEP 1: 基本情報 ----------
+  if (stepEl.dataset.section === "1") {
+    if (!form.querySelector('[name="gender"]:checked')) {
+      showError("gender", "性別を選択してください。");
+      valid = false;
+    }
+    const age = parseInt(document.getElementById("age").value, 10);
+    if (!age || age < 10 || age > 100) {
+      showError("age", "10〜100の範囲で年齢を入力してください。");
+      valid = false;
+    }
+    const height = parseFloat(heightInput.value);
+    if (!height || height < 100 || height > 250) {
+      showError("height", "100〜250cmの範囲で身長を入力してください。");
+      valid = false;
+    }
+    const weight = parseFloat(weightInput.value);
+    if (!weight || weight < 20 || weight > 300) {
+      showError("weight", "20〜300kgの範囲で体重を入力してください。");
+      valid = false;
+    }
+    const goalWeight = parseFloat(document.getElementById("goalWeight").value);
+    if (!goalWeight || goalWeight < 20 || goalWeight > 300) {
+      showError("goalWeight", "20〜300kgの範囲で目標体重を入力してください。");
       valid = false;
     }
   }
 
-  // ダイエットの目的
-  const purpose = document.getElementById("purpose").value;
-  if (!purpose) {
-    showError("purpose", "ダイエットの目的を選択してください。");
-    valid = false;
-  } else if (purpose === "その他") {
-    const otherVal = purposeOtherInput.value.trim();
-    if (!otherVal) {
-      showError("purposeOther", "「その他」の詳細を入力してください。");
+  // ---------- STEP 2: 目標設定 ----------
+  if (stepEl.dataset.section === "2") {
+    const goalDate = goalDateInput.value;
+    if (!goalDate) {
+      showError("goalDate", "目標達成日を選択してください。");
+      valid = false;
+    } else {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(goalDate);
+      target.setHours(0, 0, 0, 0);
+      if (target <= today) {
+        showError("goalDate", "今日より未来の日付を選択してください。");
+        valid = false;
+      }
+    }
+
+    const purpose = document.getElementById("purpose").value;
+    if (!purpose) {
+      showError("purpose", "ダイエットの目的を選択してください。");
+      valid = false;
+    } else if (purpose === "その他") {
+      const otherVal = purposeOtherInput.value.trim();
+      if (!otherVal) {
+        showError("purposeOther", "「その他」の詳細を入力してください。");
+        valid = false;
+      }
+    }
+  }
+
+  // ---------- STEP 3: 生活スタイル ----------
+  if (stepEl.dataset.section === "3") {
+    if (!document.getElementById("activityLevel").value) {
+      showError("activityLevel", "活動レベルを選択してください。");
+      valid = false;
+    }
+    if (!document.getElementById("jobType").value) {
+      showError("jobType", "仕事の種類を選択してください。");
       valid = false;
     }
   }
 
-  // 活動レベル
-  if (!document.getElementById("activityLevel").value) {
-    showError("activityLevel", "活動レベルを選択してください。");
-    valid = false;
-  }
-
-  // 仕事の種類
-  if (!document.getElementById("jobType").value) {
-    showError("jobType", "仕事の種類を選択してください。");
-    valid = false;
-  }
-
-  // 食事管理経験
-  if (!document.getElementById("dietExp").value) {
-    showError("dietExp", "食事管理経験を選択してください。");
-    valid = false;
-  }
-
-  // 食事スタイル
-  if (!document.getElementById("mealStyle").value) {
-    showError("mealStyle", "食事スタイルを選択してください。");
-    valid = false;
+  // ---------- STEP 4: 食事情報 ----------
+  if (stepEl.dataset.section === "4") {
+    if (!document.getElementById("dietExp").value) {
+      showError("dietExp", "食事管理経験を選択してください。");
+      valid = false;
+    }
+    if (!document.getElementById("mealStyle").value) {
+      showError("mealStyle", "食事スタイルを選択してください。");
+      valid = false;
+    }
   }
 
   return valid;
 }
 
 /* =====================================================
-   フォーム送信
+   ナビゲーション：次へ
+   ===================================================== */
+nextBtn.addEventListener("click", function () {
+  if (!validateStep(currentStep)) {
+    const firstErr = steps[currentStep].querySelector(".error");
+    if (firstErr) {
+      firstErr.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    return;
+  }
+
+  if (currentStep < totalSteps - 1) {
+    currentStep++;
+    showStep(currentStep);
+  }
+});
+
+/* =====================================================
+   ナビゲーション：戻る
+   ===================================================== */
+prevBtn.addEventListener("click", function () {
+  if (currentStep > 0) {
+    currentStep--;
+    showStep(currentStep);
+  }
+});
+
+/* =====================================================
+   フォーム送信（最終STEPのみ）
    ===================================================== */
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
-  if (!validateForm()) {
-    // 最初のエラーにスクロール
-    const firstErr = form.querySelector(".error, .err-msg:not(:empty)");
+  if (!validateStep(currentStep)) {
+    const firstErr = steps[currentStep].querySelector(".error");
     if (firstErr) {
       firstErr.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -359,7 +444,7 @@ form.addEventListener("submit", function (e) {
 function showSuccess(data) {
   const main = document.querySelector(".survey-main");
   main.innerHTML = `
-    <div class="card" style="text-align:center;padding:48px 24px;">
+    <div class="card active" style="text-align:center;padding:48px 24px;">
       <div style="font-size:3.5rem;margin-bottom:16px;">🎉</div>
       <div class="section-tag" style="margin-bottom:12px;">COMPLETE</div>
       <h2 class="section-title" style="border:none;margin-bottom:8px;">
@@ -399,14 +484,28 @@ function showSuccess(data) {
     </div>
   `;
 
+  document.getElementById("stepIndicator").classList.add("hidden");
+  document.getElementById("bottomNav").classList.add("hidden");
+  submitNote.classList.add("hidden");
   progressBar.style.width = "100%";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /* =====================================================
-   リアルタイムエラー解除（UX改善）
+   リアルタイムエラー解除 & 進捗更新
    ===================================================== */
 form.querySelectorAll("input, select, textarea").forEach((el) => {
-  el.addEventListener("input", () => clearError(el.id || el.name));
-  el.addEventListener("change", () => clearError(el.id || el.name));
+  el.addEventListener("input", () => {
+    clearError(el.id || el.name);
+    updateProgress();
+  });
+  el.addEventListener("change", () => {
+    clearError(el.id || el.name);
+    updateProgress();
+  });
 });
+
+/* =====================================================
+   初期化
+   ===================================================== */
+showStep(currentStep);
