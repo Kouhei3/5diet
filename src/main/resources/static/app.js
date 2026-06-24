@@ -27,7 +27,7 @@ const INITIAL_EXERCISES = [
 
 // 状態管理変数
 let exercises = JSON.parse(localStorage.getItem('dietApp_custom_exs')) || INITIAL_EXERCISES;
-let workoutHistory = JSON.parse(localStorage.getItem('dietApp_history')) || [];
+let workoutHistory = []; // 🌟 ローカルストレージではなく、DBから取得するように空配列に変更！
 let currentCategory = null;
 let currentSelectedExercise = null;
 let filterType = 'all';
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCounters();
     initCustomExercise();
     initRecordSaving();
-    renderHistoryList();
+    loadHistoryFromDB(); // 🌟 画面を開いたときにデータベースから最新を取得！
 });
 
 function setTodayDate() {
@@ -58,7 +58,7 @@ function initNavigation() {
     document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetScreenId = btn.getAttribute('data-target');
-            if(!targetScreenId) return; // 外部リンク等の場合はスキップ
+            if(!targetScreenId) return;
 
             document.querySelectorAll('.bottom-nav .nav-item').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -67,9 +67,13 @@ function initNavigation() {
             btn.classList.add('active');
             document.getElementById(targetScreenId).classList.add('active');
 
-            // ヘッダータイトルの補正
             const titleMap = { 'screen-categories': '部位選択', 'screen-history': '履歴リスト' };
             document.getElementById('header-title').innerText = titleMap[targetScreenId] || 'WORKOUT';
+            
+            // 履歴タブが開かれたら最新情報をDBから取得して再描画
+            if(targetScreenId === 'screen-history') {
+                loadHistoryFromDB();
+            }
         });
     });
 }
@@ -114,7 +118,6 @@ function openExercisesScreen(category) {
     document.getElementById('selected-category-title').innerText = `${category.name} の種目一覧`;
     document.getElementById('header-title').innerText = `${category.name}の種目`;
     
-    // フィルターを初期化して描写
     filterType = 'all';
     filterLevel = 'all';
     document.querySelectorAll('.home-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === 'all'));
@@ -166,18 +169,16 @@ function openInputScreen(exercise) {
     document.getElementById('exercise-desc').innerText = exercise.desc || '解説はまだ登録されていません。';
     document.getElementById('header-title').innerText = '数値を入力';
 
-    // 自重種目ならウエイトの入力欄を完全に隠す
     const weightCard = document.getElementById('weight-counter-card');
     if (exercise.type === 'bodyweight') {
         weightCard.classList.add('hide-weight');
-        document.getElementById('reps-val').value = 15; // 自重のデフォルト回数
+        document.getElementById('reps-val').value = 15;
     } else {
         weightCard.classList.remove('hide-weight');
-        document.getElementById('weight-val').value = 40; // ウエイトのデフォルト重量
+        document.getElementById('weight-val').value = 40;
         document.getElementById('reps-val').value = 10;
     }
 
-    // 前回の履歴データを割り出してバッジにバインド
     const latest = workoutHistory.find(h => h.exercise.id === exercise.id);
     const badge = document.getElementById('prev-record-text');
     if (latest) {
@@ -263,15 +264,30 @@ function initCustomExercise() {
 }
 
 // ==========================================================================
-// 4. データ保存処理（AWS RDS通信＋カレンダーへ自動画面リダイレクト）
+// 🌟 データベース連携処理（取得・保存・削除）
 // ==========================================================================
+
+// 🌟 AWS RDSから全履歴を取得する関数
+async function loadHistoryFromDB() {
+    try {
+        const response = await fetch(BACKEND_URL);
+        if (response.ok) {
+            workoutHistory = await response.json();
+            // 日付の降順（新しいものが上）になるように並び替え
+            workoutHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+            renderHistoryList();
+        }
+    } catch (error) {
+        console.error("履歴の取得に失敗しました", error);
+    }
+}
+
 function initRecordSaving() {
     document.getElementById('btn-save-log').addEventListener('click', async () => {
         const weight = parseFloat(document.getElementById('weight-val').value) || 0;
         const reps = parseInt(document.getElementById('reps-val').value) || 0;
         const date = new Date();
 
-        // 1. バックエンド（Java）のオブジェクト構造に完全に合わせる
         const recordData = {
             exercise: currentSelectedExercise,
             weight: weight,
@@ -279,19 +295,6 @@ function initRecordSaving() {
             date: date.toISOString()
         };
 
-        // 2. ローカルストレージ側の保存処理
-        workoutHistory.unshift({
-            exercise: currentSelectedExercise,
-            weight: weight,
-            reps: reps,
-            date: date
-        });
-        localStorage.setItem('dietApp_history', JSON.stringify(workoutHistory));
-
-        alert(`${currentSelectedExercise.name} を記録しました！\nカレンダー画面へ同期します。`);
-        resetRecordScreen();
-
-        // 3. AWS RDS (Spring Bootサーバー) へ送信
         try {
             const response = await fetch(BACKEND_URL, {
                 method: 'POST',
@@ -302,26 +305,17 @@ function initRecordSaving() {
             });
 
             if (response.ok) {
-                console.log('AWSのデータベースへの記録に同期成功しました！');
-                // 🌟 保存が完全に成功したら、自動的にカレンダー画面（index.html）へリダイレクト！
+                alert(`${currentSelectedExercise.name} を記録しました！\nカレンダー画面へ同期します。`);
+                // 保存成功したらカレンダー画面へリダイレクト
                 window.location.href = '/index.html';
             } else {
-                console.error('サーバー同期に失敗しました。ステータスコード:', response.status);
+                alert('サーバーへの保存に失敗しました。');
             }
         } catch (error) {
-            console.error('ネットワーク障害によりAWSとの同期ができませんでした。', error);
+            console.error('通信エラー:', error);
+            alert('ネットワーク障害が発生しました。');
         }
     });
-}
-
-function resetRecordScreen() {
-    document.getElementById('sub-screen-input').classList.remove('active');
-    document.getElementById('screen-categories').classList.add('active');
-    document.getElementById('header-title').innerText = '部位選択';
-    document.querySelectorAll('.bottom-nav .nav-item').forEach(b => {
-        b.classList.toggle('active', b.getAttribute('data-target') === 'screen-categories');
-    });
-    renderHistoryList();
 }
 
 function renderHistoryList() {
@@ -334,7 +328,7 @@ function renderHistoryList() {
         return;
     }
 
-    workoutHistory.forEach((log, index) => {
+    workoutHistory.forEach((log) => {
         const dateObj = new Date(log.date);
         const card = document.createElement('div');
         card.className = 'card log-card';
@@ -343,6 +337,7 @@ function renderHistoryList() {
             ? `${log.reps} 回`
             : `${log.weight} kg × ${log.reps} 回`;
 
+        // 🌟 削除ボタンにデータベースの「ID」を持たせる
         card.innerHTML = `
             <div class="log-date-box">
                 <span class="log-day">${dateObj.getDate()}</span>
@@ -353,17 +348,26 @@ function renderHistoryList() {
                 <p>${detailText}</p>
             </div>
             <div class="ex-controls right">
-                 <button class="log-delete-btn" data-index="${index}">✕</button>
+                 <button class="log-delete-btn" data-id="${log.id}">✕</button>
             </div>
         `;
         
-        // 履歴削除のイベント
-        card.querySelector('.log-delete-btn').addEventListener('click', (e) => {
-            const idx = e.target.dataset.index;
-            if(confirm('このトレーニング記録をローカル履歴から削除しますか？')) {
-                workoutHistory.splice(idx, 1);
-                localStorage.setItem('dietApp_history', JSON.stringify(workoutHistory));
-                renderHistoryList();
+        // 🌟 AWS RDSからデータを削除する処理
+        card.querySelector('.log-delete-btn').addEventListener('click', async (e) => {
+            const dbId = e.target.dataset.id;
+            if(confirm('この記録を完全に削除しますか？\n(データベースからも削除されます)')) {
+                try {
+                    const res = await fetch(`${BACKEND_URL}/${dbId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        alert("削除しました。");
+                        loadHistoryFromDB(); // 削除後、DBから最新状態を再読み込み！
+                    } else {
+                        alert("削除に失敗しました。");
+                    }
+                } catch (error) {
+                    console.error("エラー:", error);
+                    alert("通信エラーが発生しました。");
+                }
             }
         });
 

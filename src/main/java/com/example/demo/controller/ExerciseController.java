@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.WorkoutLog;
-import com.example.demo.repository.WorkOutRepository;
+import com.example.demo.repository.WorkoutLogRepository; 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +18,12 @@ import java.util.Map;
 public class ExerciseController {
 
     @Autowired
-    private WorkOutRepository workoutRepository;
+    private WorkoutLogRepository workoutLogRepository; 
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    // 1. 筋トレ記録の保存（exercise.htmlから送信されてくる）
+    // 1. 記録の保存
     @PostMapping
     public String saveRecord(@RequestBody RecordRequest request) {
         try {
@@ -35,7 +35,7 @@ public class ExerciseController {
             String jsonStr = objectMapper.writeValueAsString(request.getExercise());
             log.setExerciseJson(jsonStr);
 
-            workoutRepository.save(log);
+            workoutLogRepository.save(log);
             return "{\"status\":\"success\"}";
         } catch (Exception e) {
             e.printStackTrace();
@@ -43,10 +43,10 @@ public class ExerciseController {
         }
     }
 
-    // 2. 登録された筋トレ履歴の全件取得（index.htmlのカレンダーに表示する）
+    // 2. 全件取得
     @GetMapping
     public List<Map<String, Object>> getAllRecords() {
-        List<WorkoutLog> rawRecords = workoutRepository.findAll();
+        List<WorkoutLog> rawRecords = workoutLogRepository.findAll();
         List<Map<String, Object>> resultList = new ArrayList<>();
 
         for (WorkoutLog raw : rawRecords) {
@@ -57,7 +57,6 @@ public class ExerciseController {
                 responseMap.put("reps", raw.getReps());
                 responseMap.put("date", raw.getDate());
 
-                // JSON文字列をマップ（オブジェクト）に戻して格納
                 Map<String, Object> exerciseMap = objectMapper.readValue(raw.getExerciseJson(), Map.class);
                 responseMap.put("exercise", exerciseMap);
 
@@ -67,6 +66,19 @@ public class ExerciseController {
             }
         }
         return resultList;
+    }
+
+    // 3. 筋トレ記録の削除（ゴミ箱ボタンが押されたときに呼ばれる）
+    @DeleteMapping("/{id}")
+    public String deleteRecord(@PathVariable Long id) {
+        try {
+            // データベースから指定されたIDの記録を完全に削除する
+            workoutLogRepository.deleteById(id);
+            return "{\"status\":\"success\"}";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{\"status\":\"error\",\"message\":\"" + e.getMessage() + "\"}";
+        }
     }
 }
 

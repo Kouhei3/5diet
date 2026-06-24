@@ -266,6 +266,7 @@ async function fetchAWSData(type) {
                 const title = `💪 ${exerciseName} (${detailText})`;
 
                 addCalendarEvent({
+                    // 🌟 ここでAWSのIDを覚えさせています！
                     id: log.id ? `aws_workout_${log.id}` : `aws_workout_${Date.now() + Math.random()}`,
                     title,
                     start,
@@ -315,8 +316,28 @@ function updateDetailSection(dateStr) {
     });
 }
 
-function deleteItem(id) {
-    if (confirm('この記録をカレンダーから削除しますか？')) {
+// 🌟 ここが超重要！削除機能をAWS通信対応（async）に書き換えました！
+async function deleteItem(id) {
+    if (confirm('この記録をカレンダーから完全に削除しますか？\n（データベースからも削除されます）')) {
+        
+        // もし AWS の筋トレデータなら、APIを叩いてデータベースから削除！
+        if (id.startsWith('aws_workout_')) {
+            const dbId = id.replace('aws_workout_', ''); // 実際のIDの数字だけを取り出す
+            try {
+                const response = await fetch(`/api/records/${dbId}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    alert('データベースからの削除に失敗しました。');
+                    return; // 失敗したらカレンダーからも消さない
+                }
+                console.log(`AWS RDSのデータ (ID: ${dbId}) を削除しました。`);
+            } catch (error) {
+                console.error('削除エラー:', error);
+                alert('通信エラーが発生しました。サーバーが動いているか確認してください。');
+                return;
+            }
+        }
+
+        // ここから下は元の処理（画面のカレンダーとローカルメモリから消す）
         const ev = calendar.getEventById(id);
         if (ev) ev.remove();
         savedEvents = savedEvents.filter(event => event.id !== id);
