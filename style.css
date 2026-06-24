@@ -88,10 +88,10 @@ canvas {
 
 #todoList li span,
 #todoListDashboard li span {
-  white-space: nowrap;          /* 改行しない */
-  overflow: hidden;             /* はみ出し防止 */
-  text-overflow: ellipsis;      /* …で省略 */
-  width: 80%;                   /* ← ここが重要！文字部分の幅を固定 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 80%;
 }
 
 #todoList li input[type="checkbox"],
@@ -99,19 +99,46 @@ canvas {
   transform: scale(1.2);
 }
 
+/* 今日の食事：合計カロリー・タンパク質 */
+#todayCalorie,
+#todayProtein {
+  font-size: 16px;     /* ← 大きく戻す */
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
 /* 食事リスト（ダッシュボード） */
+#foodListDashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+
 #foodListDashboard li {
   list-style: none;
-  padding: 6px 0;
-  border-bottom: 1px solid #eee;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  width: 100%;
 }
 
+/* 食品名（1行目） */
 #foodListDashboard li div:first-child {
-  font-size: 16px;
-  margin-bottom: 4px; /* ← 食品名と成分の間に隙間 */
+  font-size: 15px;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
 }
 
+/* カロリー・タンパク質（2行目） */
 #foodListDashboard li div:last-child {
-  font-size: 13px;
-  color: #555;
+  display: block;
+  width: 100%;
+  white-space: normal;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
 }

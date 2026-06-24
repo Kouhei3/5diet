@@ -17,11 +17,8 @@ if (saveWeightBtn) {
     localStorage.setItem("latestHeight", height);
 
     const bmi = (weight / ((height / 100) ** 2)).toFixed(1);
-    document.getElementById("weightResult").textContent = weight;
-    document.getElementById("bmiResult").textContent = bmi;
-
+    
     saveWeightToLocal(weight);
-
     const today = new Date().toLocaleDateString("ja-JP");
     localStorage.setItem("lastWeightDate", today);
 
@@ -258,12 +255,20 @@ function loadLatestBMI() {
 
 function loadTodayCalorie() {
   const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
-  let total = 0;
 
-  data.forEach(item => total += Number(item.calorie));
+  let totalCalorie = 0;
+  let totalProtein = 0;
 
-  const el = document.getElementById("todayCalorie");
-  if (el) el.textContent = "合計: " + total + " kcal";
+  data.forEach(item => {
+    totalCalorie += Number(item.calorie);
+    totalProtein += Number(item.protein);
+  });
+
+  const calEl = document.getElementById("todayCalorie");
+  if (calEl) calEl.textContent = "合計: " + totalCalorie + " kcal";
+
+  const proEl = document.getElementById("todayProtein");
+  if (proEl) proEl.textContent = "タンパク質: " + totalProtein + " g";
 }
 
 function loadTodayFoodsDashboard() {
@@ -282,10 +287,13 @@ function loadTodayFoodsDashboard() {
   name.style.whiteSpace = "nowrap";
 
   const detail = document.createElement("div");
-  detail.textContent = `カロリー：${item.calorie} kcal　タンパク質：${item.protein} g`;
+  detail.innerHTML = `
+    カロリー：${item.calorie} kcal<br>
+    タンパク質：${item.protein} g
+`;
   detail.style.fontSize = "14px";
   detail.style.opacity = "0.8";
-
+  
   li.appendChild(name);
   li.appendChild(detail);
   list.appendChild(li);
