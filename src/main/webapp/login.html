@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ログイン | 5DIET</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container">
+    <div class="brand-header">
+        <div class="brand-badge">5DIET</div>
+        <h1>ログイン</h1>
+        <p class="subtitle">登録したユーザー名とパスワードを入力してください。</p>
+        <p id="message" class="message"></p>
+    </div>
+
+    <form id="loginForm">
+        <div class="field-row">
+            <label for="username">ユーザー名</label>
+            <input type="text" id="username" autocomplete="username" required>
+        </div>
+
+        <div class="field-row">
+            <label for="password">パスワード</label>
+            <div class="password-field">
+                <input type="password" id="password" autocomplete="current-password" required>
+                <button type="button" class="password-toggle" data-target="password">表示</button>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-button">ログインする</button>
+    </form>
+
+    <div class="auth-links">
+        <button type="button" class="button-secondary" onclick="location.href='forgot-password.html'">パスワードをお忘れの方はこちら</button>
+        <button type="button" class="button-outline" onclick="location.href='index.html'">アカウントの新規登録</button>
+    </div>
+</div>
+
+<script src="js/auth.js"></script>
+</body>
+</html>
