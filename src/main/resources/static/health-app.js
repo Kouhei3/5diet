@@ -1,5 +1,5 @@
 // ===============================
-// 体重入力画面（weight.html）
+// 体重入力画面（health-weight.html）
 // ===============================
 let chart;
 
@@ -17,15 +17,14 @@ if (saveWeightBtn) {
     localStorage.setItem("latestHeight", height);
 
     const bmi = (weight / ((height / 100) ** 2)).toFixed(1);
-    
+
     saveWeightToLocal(weight);
     const today = new Date().toLocaleDateString("ja-JP");
     localStorage.setItem("lastWeightDate", today);
 
     alert("保存しました");
-    location.href = "index.html";
+    location.href = "health-dashboard.html";
   });
-
 }
 
 function saveWeightToLocal(weight) {
@@ -85,7 +84,7 @@ function updateChart() {
 }
 
 // ===============================
-// 食事入力画面（food.html）
+// 食事入力画面（health-food.html）
 // ===============================
 const saveFoodBtn = document.getElementById("saveFoodBtn");
 
@@ -115,7 +114,7 @@ if (saveFoodBtn) {
     document.getElementById("protein").value = "";
 
     alert("保存しました");
-    location.href = "index.html";
+    location.href = "health-dashboard.html";
   });
 }
 
@@ -125,7 +124,7 @@ function updateFoodList() {
 }
 
 // ===============================
-// ToDo 入力画面（todo.html）
+// ToDo 入力画面（health-todo.html）
 // ===============================
 const addTodoBtn = document.getElementById("addTodoBtn");
 if (addTodoBtn) {
@@ -144,7 +143,7 @@ if (addTodoBtn) {
     document.getElementById("todoInput").value = "";
 
     alert("追加しました");
-    location.href = "index.html";
+    location.href = "health-dashboard.html";
   });
 
   updateTodoList();
@@ -189,7 +188,7 @@ function updateTodoList() {
 }
 
 // ===============================
-// スケジュール入力画面（schedule.html）
+// スケジュール入力画面（health-schedule.html）
 // ===============================
 const addPlanBtn = document.getElementById("addPlanBtn");
 if (addPlanBtn) {
@@ -209,7 +208,7 @@ if (addPlanBtn) {
     document.getElementById("planInput").value = "";
 
     alert("追加しました");
-    location.href = "index.html";
+    location.href = "health-dashboard.html";
   });
 
   updatePlanList();
@@ -230,7 +229,7 @@ function updatePlanList() {
 }
 
 // ===============================
-// ダッシュボード（index.html）
+// ダッシュボード（health-dashboard.html）
 // ===============================
 function loadLatestWeight() {
   const data = JSON.parse(localStorage.getItem("weights") || "[]");
@@ -279,24 +278,24 @@ function loadTodayFoodsDashboard() {
   list.innerHTML = "";
 
   data.forEach(item => {
-  const li = document.createElement("li");
+    const li = document.createElement("li");
 
-  const name = document.createElement("div");
-  name.textContent = item.name;
-  name.style.fontWeight = "bold";
-  name.style.whiteSpace = "nowrap";
+    const name = document.createElement("div");
+    name.textContent = item.name;
+    name.style.fontWeight = "bold";
+    name.style.whiteSpace = "nowrap";
 
-  const detail = document.createElement("div");
-  detail.innerHTML = `
-    カロリー：${item.calorie} kcal<br>
-    タンパク質：${item.protein} g
-`;
-  detail.style.fontSize = "14px";
-  detail.style.opacity = "0.8";
-  
-  li.appendChild(name);
-  li.appendChild(detail);
-  list.appendChild(li);
+    const detail = document.createElement("div");
+    detail.innerHTML = `
+      カロリー：${item.calorie} kcal<br>
+      タンパク質：${item.protein} g
+    `;
+    detail.style.fontSize = "14px";
+    detail.style.opacity = "0.8";
+
+    li.appendChild(name);
+    li.appendChild(detail);
+    list.appendChild(li);
   });
 }
 
