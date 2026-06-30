@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FITNESS APP</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="exerciseStyle.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -116,21 +116,21 @@
         </main>
 
         <nav class="bottom-nav" id="bottom-nav">
-            <button class="nav-item active" data-target="screen-home">
-                <span class="nav-icon">🏠</span>
-                <span class="nav-text">Home</span>
+            <button class="nav-item active" data-target="screen-home" onclick="window.location.href='exercise.html'">
+                <span class="nav-icon">🏋️</span>
+                <span class="nav-text">Workout</span>
             </button>
-            <button class="nav-item record" data-target="screen-record">
+            <button class="nav-item record" data-target="screen-record" onclick="window.location.href='scheduleIndex.html'">
                 <div class="center-nav-bg"></div>
-                <span class="nav-icon center">＋</span>
+                <span class="nav-icon center">📅</span>
             </button>
-            <button class="nav-item" data-target="screen-history">
-                <span class="nav-icon">📊</span>
-                <span class="nav-text">履歴</span>
+            <button class="nav-item" data-target="screen-history" onclick="window.location.href='mealIndex.html'">
+                <span class="nav-icon">🍽️</span>
+                <span class="nav-text">Meal</span>
             </button>
         </nav>
     </div>
 
-    <script src="app.js"></script>
+    <script src="exerciseApp.js"></script>
 </body>
 </html>

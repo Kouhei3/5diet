@@ -1,0 +1,189 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f4f7f5;
+  margin: 0;
+  padding: 20px;
+  color: #222;
+}
+
+.container {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding-bottom: 90px;
+}
+
+h1 {
+  text-align: center;
+  color: #2e7d32;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: #fff;
+  padding: 30px;
+  margin-bottom: 25px;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+h2 {
+  margin-top: 0;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+input,
+select {
+  border: 1px solid #ccc;
+  background: white;
+}
+
+button {
+  margin-top: 20px;
+  background: #43a047;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #2e7d32;
+}
+
+.result-box {
+  background: #eef7ee;
+  padding: 20px;
+  border-radius: 14px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.result-box p {
+  margin: 0 0 8px;
+}
+
+.result-box strong {
+  font-size: 30px;
+  color: #2e7d32;
+}
+
+.target-box {
+  background: #f7f7f7;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.target-box p {
+  margin: 6px 0;
+}
+
+.pfc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.pfc-grid div {
+  background: #f7f7f7;
+  padding: 18px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.pfc-grid p {
+  margin: 0 0 8px;
+}
+
+.pfc-grid strong {
+  display: block;
+  font-size: 20px;
+}
+
+.pfc-grid small {
+  color: #666;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #f7f7f7;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.history-list p {
+  margin: 5px 0;
+}
+
+.delete-btn {
+  width: auto;
+  min-width: 70px;
+  margin-top: 0;
+  background: #e53935;
+  padding: 10px 14px;
+}
+
+.delete-btn:hover {
+  background: #c62828;
+}
+
+@media screen and (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .container {
+    max-width: 100%;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .pfc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .history-list li {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .delete-btn {
+    width: 100%;
+  }
+
+  .result-box strong {
+    font-size: 24px;
+  }
+}

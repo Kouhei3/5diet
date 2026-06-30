@@ -52,6 +52,7 @@ const STORAGE_KEYS = {
     history: 'fitRecordHistory'
 };
 
+const LOCAL_MEAL_STORAGE_KEY = 'mealRecordsLocal';
 const BACKEND_URL = 'http://44.220.150.89:8080/api/records';
 
 function safeJsonParse(value, fallback) {
@@ -87,6 +88,60 @@ function saveWorkoutHistory() {
         date: log.date instanceof Date ? log.date.toISOString() : log.date
     }));
     localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(serializableHistory));
+}
+
+function getLocalMealRecords() {
+    try {
+        return JSON.parse(localStorage.getItem(LOCAL_MEAL_STORAGE_KEY) || '[]');
+    } catch (e) {
+        return [];
+    }
+}
+
+function syncLocalMealData() {
+    const records = getLocalMealRecords();
+    if (!Array.isArray(records) || records.length === 0) {
+        return;
+    }
+
+    const existingIds = new Set(savedEvents.map(event => event.id));
+    let addedCount = 0;
+
+    records.forEach(record => {
+        const eventId = `meal-local-${record.id}`;
+        if (existingIds.has(eventId)) return;
+
+        const mealDate = record.record_date || new Date().toISOString();
+        const eventStart = mealDate.includes('T') ? mealDate : `${mealDate}T12:00:00`;
+        const title = `${record.food_name || '食事'} (${record.meal_type || '食事'})`;
+
+        const newEvent = {
+            id: eventId,
+            title,
+            start: eventStart,
+            backgroundColor: '#34c759',
+            borderColor: '#34c759',
+            extendedProps: {
+                category: 'meal',
+                rawData: record,
+                source: 'local'
+            }
+        };
+
+        savedEvents.push(newEvent);
+        existingIds.add(eventId);
+        if (calendar) {
+            calendar.addEvent(newEvent);
+        }
+        addedCount += 1;
+    });
+
+    if (addedCount > 0) {
+        saveEvents();
+        if (selectedDateStr) {
+            updateDetailSection(selectedDateStr);
+        }
+    }
 }
 
 // ヘルパー: 履歴項目を削除
@@ -134,6 +189,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadSavedData();
     renderHome();
+    syncLocalMealData();
+});
+
+window.addEventListener('storage', (event) => {
+    if (event.key === LOCAL_MEAL_STORAGE_KEY) {
+        syncLocalMealData();
+    }
 });
 
 /* =========================================================================

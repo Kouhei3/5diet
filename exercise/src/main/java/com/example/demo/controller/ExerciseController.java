@@ -1,12 +1,14 @@
 package com.example.demo.controller;
 
 import org.springframework.web.bind.annotation.*;
-import com.example.demo.entity.WorkoutLog;          // 相方さんのEntityをインポート
-import com.example.demo.repository.WorkOutRepository; // 相方さんのRepositoryをインポート
+import com.example.demo.entity.WorkoutLog;
+import com.example.demo.repository.WorkOutRepository;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/records")
@@ -35,6 +37,32 @@ public class ExerciseController {
             public String level;
             public String desc;
         }
+    }
+
+    @GetMapping
+    public List<Map<String, Object>> getAllRecords() {
+        return workoutRepository.findAll().stream().map(log -> {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", log.getId());
+            item.put("date", log.getDate() != null ? log.getDate().toLocalDate().toString() : null);
+            item.put("time", log.getDate() != null ? log.getDate().toLocalTime().toString() : "08:00");
+            item.put("title", (log.getExerciseName() != null ? log.getExerciseName() : "筋トレ") + " " + (log.getReps() != null ? log.getReps() : 0) + "回");
+            item.put("exercise", Map.of(
+                "name", log.getExerciseName(),
+                "type", log.getExerciseType(),
+                "reps", log.getReps(),
+                "weight", log.getWeight()
+            ));
+            item.put("reps", log.getReps());
+            item.put("weight", log.getWeight());
+            return item;
+        }).toList();
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleteRecord(@PathVariable Long id) {
+        workoutRepository.deleteById(id);
+        return "削除成功";
     }
 
     // POSTリクエストを受け取って保存処理をする

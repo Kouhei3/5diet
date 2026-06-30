@@ -3,74 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>スケジュール＆履歴管理 - スマホ版原型</title>
+    <title>スケジュール＆履歴管理 - カレンダー</title>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            margin: 0; padding: 0; background-color: #f0f2f5;
+            margin: 0; padding: 0; background-color: #1c1c1e;
             display: flex; justify-content: center; min-height: 100vh;
         }
         .phone-container {
-            width: 100%; max-width: 410px; background: white;
+            width: 100%; max-width: 430px; background: #f2f2f7;
             min-height: 100vh; display: flex; flex-direction: column;
-            box-sizing: border-box; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-sizing: border-box; box-shadow: 0 0 40px rgba(0,0,0,0.2);
+            padding-bottom: 90px; position: relative;
         }
         
         /* カレンダーエリア */
-        .calendar-section { padding: 10px; border-bottom: 2px solid #eee; }
-        #calendar { font-size: 0.85rem; }
+        .calendar-section { padding: 10px; background: white; border-bottom: 1px solid #e5e5ea; }
+        #calendar { font-size: 0.85rem; color: #1c1c1e; }
 
         /* 下部：履歴・詳細エリア */
-        .detail-section { flex: 1; padding: 15px; background-color: #fdfdfd; }
-        .selected-date-title { font-size: 1.1rem; margin: 0 0 10px 0; color: #333; font-weight: bold; }
+        .detail-section { flex: 1; padding: 15px; background-color: #f2f2f7; overflow-y: auto; }
+        .selected-date-title { font-size: 1.1rem; margin: 0 0 10px 0; color: #1c1c1e; font-weight: bold; }
         
         /* 履歴のリスト項目 */
         .history-list { list-style: none; padding: 0; margin: 0; }
         .history-item {
-            padding: 10px; border-radius: 8px; margin-bottom: 8px;
+            padding: 12px; border-radius: 12px; margin-bottom: 8px;
             display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.9rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: white;
         }
         /* カテゴリ別の色 */
-        .item-event { background-color: #fff3cd; border-left: 5px solid #ffc107; color: #856404; } /* 予定: 黄 */
-        .item-exercise { background-color: #cce5ff; border-left: 5px solid #007bff; color: #004085; } /* 運動: 青 */
-        .item-meal { background-color: #d4edda; border-left: 5px solid #28a745; color: #155724; } /* 食事: 緑 */
+        .item-event { border-left: 5px solid #ff9500; color: #1c1c1e; } /* 予定: オレンジ */
+        .item-exercise { border-left: 5px solid #007aff; color: #1c1c1e; } /* 運動: 青 */
+        .item-meal { border-left: 5px solid #34c759; color: #1c1c1e; } /* 食事: 緑 */
         
-        .delete-text { font-size: 0.8rem; color: #dc3545; cursor: pointer; text-decoration: underline; }
-        .no-data { color: #aaa; font-size: 0.85rem; text-align: center; margin-top: 20px; }
+        .delete-text { font-size: 0.8rem; color: #ff3b30; cursor: pointer; text-decoration: underline; font-weight: bold; }
+        .no-data { color: #8e8e93; font-size: 0.85rem; text-align: center; margin-top: 20px; }
 
         .manual-form {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 6px;
-            margin-top: 12px;
+            display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 15px;
+            background: white; padding: 15px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         .manual-form input,
         .manual-form select,
         .manual-form button {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            font-size: 0.85rem;
+            width: 100%; box-sizing: border-box; padding: 12px;
+            border-radius: 10px; border: 1px solid #e5e5ea; font-size: 0.85rem; outline: none;
         }
         .manual-form button {
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
+            background: linear-gradient(135deg, #007aff 0%, #00c6ff 100%);
+            color: white; border: none; cursor: pointer; font-weight: bold; font-size: 14px;
         }
 
         .sync-buttons { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
         .sync-btn {
-            padding: 8px 4px; border: none; border-radius: 6px;
+            padding: 10px 4px; border: none; border-radius: 8px;
             font-size: 0.75rem; font-weight: bold; cursor: pointer; color: white;
         }
-        .btn-ev { background-color: #ffc107; color: #333; }
-        .btn-ex { background-color: #007bff; }
-        .btn-me { background-color: #28a745; }
+        .btn-ev { background-color: #ff9500; }
+        .btn-ex { background-color: #007aff; }
+        .btn-me { background-color: #34c759; }
+
+        /* ナビゲーション */
+        .bottom-nav {
+            height: 83px; background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(0,0,0,0.05); position: fixed; bottom: 0; width: 100%; max-width: 430px;
+            z-index: 100; display: flex; justify-content: space-around; padding-top: 8px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.03); border-radius: 20px 20px 0 0;
+        }
+        .nav-item { background: none; border: none; color: #a2a2a7; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 70px; padding: 0; }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+        .nav-text { font-size: 10px; font-weight: 700; }
+        .nav-item.active { color: #007aff; }
     </style>
 </head>
 <body>
@@ -86,23 +93,39 @@
         <ul class="history-list" id="historyList"></ul>
 
         <div class="manual-form">
+            <h4 style="margin:0 0 5px 0; color:#1c1c1e;">手動でスケジュール追加</h4>
             <select id="manualCategory">
                 <option value="event">予定</option>
                 <option value="exercise">運動</option>
                 <option value="meal">食事</option>
             </select>
-            <input id="manualTitle" type="text" placeholder="チートデイ など自由に入力">
+            <input id="manualTitle" type="text" placeholder="チートデイ、ランニングなど自由に入力">
             <input id="manualDate" type="date">
             <input id="manualTime" type="time">
-            <button onclick="addManualSchedule()">＋予定を追加</button>
+            <button onclick="addManualSchedule()">＋カレンダーに追加</button>
         </div>
 
         <div class="sync-buttons">
             <button class="sync-btn btn-ex" onclick="fetchAWSData('workout')">AWS筋トレ同期</button>
-            <button class="sync-btn btn-me" onclick="fetchAWSData('meal')">AWS食事</button>
+            <button class="sync-btn btn-me" onclick="syncLocalMealData()">ローカル食事同期</button>
             <button class="sync-btn btn-ev" onclick="fetchAWSData('workout-menu')">AWSメニュー</button>
         </div>
     </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-item" onclick="window.location.href='exercise.html'">
+            <div class="nav-icon">🏋️</div>
+            <div class="nav-text">Workout</div>
+        </button>
+        <button class="nav-item active">
+            <div class="nav-icon">📅</div>
+            <div class="nav-text">Schedule</div>
+        </button>
+        <button class="nav-item" onclick="window.location.href='mealIndex.html'">
+            <div class="nav-icon">🍽️</div>
+            <div class="nav-text">Meal</div>
+        </button>
+    </nav>
 </div>
 
 <script>
@@ -146,9 +169,9 @@ function addCalendarEvent(eventData) {
     const title = eventData.title || '予定';
     const start = eventData.start || `${selectedDateStr}T08:00:00`;
 
-    let backgroundColor = '#ffc107';
-    if (category === 'exercise') backgroundColor = '#007bff';
-    if (category === 'meal') backgroundColor = '#28a745';
+    let backgroundColor = '#ff9500';
+    if (category === 'exercise') backgroundColor = '#007aff';
+    if (category === 'meal') backgroundColor = '#34c759';
 
     const newEvent = {
         id,
@@ -193,12 +216,15 @@ document.addEventListener('DOMContentLoaded', function() {
             setDateInputs(selectedDateStr);
             updateDetailSection(dateStr);
         }
+        
     });
 
     calendar.render();
     updateDetailSection(selectedDateStr);
+    // ✨ カレンダーの描画が終わったら、食事データを同期する
+    syncMealsWithCalendar(calendar);
     
-    // アプリ起動時に自動的にAWSから最新データを取得する
+    // 起動時にAWS RDSから自動同期する
     Promise.all([
         fetchAWSData('workout'),
         fetchAWSData('meal'),
@@ -207,39 +233,31 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function fetchAWSData(type) {
-    // 【修正ポイント】あなたの app.js（/api/records）とエンドポイントを統一
     const endpoints = {
-        workout: 'http://localhost:8080/api/records',
-        meal: 'http://localhost:8080/api/meal',
-        'workout-menu': 'http://localhost:8080/api/workout-menu'
+        workout: '/api/records',
+        meal: '/api/meal',
+        'workout-menu': '/api/workout-menu'
     };
 
     const targetUrl = endpoints[type];
-    if (!targetUrl) {
-        console.warn('対応していない同期タイプです:', type);
-        return;
-    }
+    if (!targetUrl) return;
 
     try {
         const response = await fetch(targetUrl, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
-        if (!response.ok) {
-            throw new Error(`HTTPエラー! ステータス: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
         const data = await response.json();
 
         if (type === 'workout') {
             data.forEach(log => {
-                // あなたの app.js が送るオブジェクト構造（log.date, log.exercise）を解析
                 const dateValue = log.date;
                 if (!dateValue) return;
 
                 const start = dateValue.includes('T') ? dateValue : `${dateValue}T08:00:00`;
                 
-                // 安全に種目名やタイプを取り出す
                 const exerciseName = log.exercise ? log.exercise.name : '筋トレ';
                 const exerciseType = log.exercise ? log.exercise.type : 'weight';
                 const reps = log.reps || 0;
@@ -257,30 +275,40 @@ async function fetchAWSData(type) {
                     category: 'exercise'
                 });
             });
-        } else if (type === 'meal') {
+        }
+
+        if (type === 'meal') {
             data.forEach(item => {
-                const dateValue = item.date || item.day || item.mealDate;
-                const timeValue = item.time || item.mealTime || '12:00';
-                const title = item.title || item.name || '食事';
-                const start = `${dateValue}T${timeValue}`;
+                const dateValue = item.date;
+                const timeValue = item.time || '08:00';
+                if (!dateValue) return;
+
+                const start = `${dateValue}T${timeValue}:00`;
+                const title = `🍳 ${item.title}`;
+
                 addCalendarEvent({
-                    id: item.id ? `aws_meal_${item.id}` : `aws_meal_${start}`,
-                    title: `🍳 ${title}`,
+                    id: item.id ? `aws_meal_${item.id}` : `aws_meal_${Date.now() + Math.random()}`,
+                    title,
                     start,
                     category: 'meal'
                 });
             });
-        } else if (type === 'workout-menu') {
+        }
+
+        if (type === 'workout-menu') {
             data.forEach(item => {
-                const dateValue = item.date || item.day || selectedDateStr;
-                const timeValue = item.time || item.scheduleTime || '18:00';
-                const title = item.title || item.name || 'メニュー';
-                const start = `${dateValue}T${timeValue}`;
+                const dateValue = item.date;
+                const timeValue = item.time || '08:00';
+                if (!dateValue) return;
+
+                const start = `${dateValue}T${timeValue}:00`;
+                const title = `📅 ${item.title}`;
+
                 addCalendarEvent({
-                    id: item.id ? `aws_menu_${item.id}` : `aws_menu_${start}`,
-                    title: `🏋️ ${title}`,
+                    id: item.id ? `aws_menu_${item.id}` : `aws_menu_${Date.now() + Math.random()}`,
+                    title,
                     start,
-                    category: 'exercise'
+                    category: 'event'
                 });
             });
         }
@@ -325,8 +353,41 @@ function updateDetailSection(dateStr) {
     });
 }
 
-function deleteItem(id) {
-    if (confirm('この記録を削除しますか？')) {
+// 🌟 ここが超重要！削除機能をAWS通信対応（async）に書き換えました！
+async function deleteItem(id) {
+    if (confirm('この記録をカレンダーから完全に削除しますか？\n（データベースからも削除されます）')) {
+        
+        // もし AWS の筋トレデータなら、APIを叩いてデータベースから削除！
+        if (id.startsWith('aws_workout_')) {
+            const dbId = id.replace('aws_workout_', ''); // 実際のIDの数字だけを取り出す
+            try {
+                const response = await fetch(`/api/records/${dbId}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    alert('データベースからの削除に失敗しました。');
+                    return; // 失敗したらカレンダーからも消さない
+                }
+                console.log(`AWS RDSのデータ (ID: ${dbId}) を削除しました。`);
+            } catch (error) {
+                console.error('削除エラー:', error);
+                alert('通信エラーが発生しました。サーバーが動いているか確認してください。');
+                return;
+            }
+        }
+
+        function deleteCalendarEvent(id) {
+    // 🛑 もし削除しようとした予定が「食事データ」だった場合
+    if (String(id).startsWith('server_meal_')) {
+        alert('食事履歴は「食事カロリー管理（Meal）」画面から削除してください。');
+        return; // ここで処理を終了させ、筋トレの削除APIに行かせない
+        }
+
+    // --- ここから下は既存の筋トレ用DB削除処理 ----------------
+    if (confirm('この記録を完全に削除しますか？')) {
+        // fetch(`/api/records/${dbId}`, { method: 'DELETE' }) ... などの処理
+        }
+    }
+
+        // ここから下は元の処理（画面のカレンダーとローカルメモリから消す）
         const ev = calendar.getEventById(id);
         if (ev) ev.remove();
         savedEvents = savedEvents.filter(event => event.id !== id);
@@ -362,6 +423,38 @@ function addManualSchedule() {
     });
 
     updateDetailSection(selectedDateStr);
+}
+
+// 💡 サーバーから食事データを取得してカレンダーに反映させる関数
+async function syncMealsWithCalendar(calendar) {
+    try {
+        // Javaバックエンドの食事データ用APIを叩く
+        const response = await fetch('/api/meal');
+        if (!response.ok) throw new Error('食事データの取得に失敗しました');
+
+        const meals = await response.json();
+
+        meals.forEach(meal => {
+            // 重複してカレンダーに追加されるのを防ぐため、サーバーデータ専用のIDを作る
+            const eventId = `server_meal_${meal.id}`;
+
+            // まだカレンダーに表示されていなければ追加する
+            if (!calendar.getEventById(eventId)) {
+                calendar.addEvent({
+                    id: eventId,
+                    title: `🍳 ${meal.title}`,             // 食事と一目でわかるようにアイコンを付与
+                    start: `${meal.date}T${meal.time}:00`, // カレンダーが認識できる日時の形式（YYYY-MM-DDTHH:mm:ss）に結合
+                    backgroundColor: '#ff9500',           // 食事イベントはオレンジ色にする（筋トレと色分け）
+                    borderColor: '#ff9500',
+                    allDay: false,
+                    extendedProps: { isMeal: true }        // 食事データであるという目印（後述の削除対策用）
+                });
+            }
+        });
+        console.log("食事データのカレンダー同期が完了しました！");
+    } catch (error) {
+        console.error("食事データの同期エラー:", error);
+    }
 }
 </script>
 
