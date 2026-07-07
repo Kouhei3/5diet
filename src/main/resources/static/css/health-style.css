@@ -1,0 +1,203 @@
+/* =====================
+   ベース
+   ===================== */
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background: #fafafa;
+  color: #1a1a1a;
+}
+
+h1 {
+  text-align: center;
+}
+
+/* =====================
+   カード
+   ===================== */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 30px;
+  height: auto;
+}
+
+.graph-card {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  height: auto;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* =====================
+   入力系
+   ===================== */
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box; /* ← 追加：幅が親要素をはみ出さないよう修正 */
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4CAF50;
+  color: white;
+  cursor: pointer; /* ← 追加：クリックできることを明示 */
+}
+
+button:hover {
+  background: #43a047; /* ← 追加：ホバー時に少し暗くして押せる感を出す */
+}
+
+/* =====================
+   グラフ
+   ===================== */
+canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* ← chart-containerの固定height:800pxを削除（グラフが不自然に大きくなるため） */
+.chart-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* =====================
+   ToDo（入力画面 & ダッシュボード）
+   ===================== */
+#todoList,
+#todoListDashboard {
+  padding: 0;
+  margin: 0;
+}
+
+#todoList li,
+#todoListDashboard li {
+  display: flex;
+  align-items: center; /* ← justify-content:space-between を削除：チェックボックスとテキストを左寄せに */
+  gap: 8px;
+  list-style: none;
+  padding: 6px 0;
+}
+
+#todoList li span,
+#todoListDashboard li span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1; /* ← width:80%から変更：チェックボックスの横幅に合わせて自動調整 */
+}
+
+#todoList li input[type="checkbox"],
+#todoListDashboard li input[type="checkbox"] {
+  transform: scale(1.2);
+  flex-shrink: 0; /* ← 追加：チェックボックスが縮まないようにする */
+  cursor: pointer;
+}
+
+/* =====================
+   今日の食事：合計カロリー・タンパク質
+   ===================== */
+#todayCalorie,
+#todayProtein {
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
+/* =====================
+   食事リスト（ダッシュボード）
+   ===================== */
+#foodListDashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  margin: 8px 0;
+}
+
+#foodListDashboard li {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  width: 100%;
+}
+
+/* 食品名（1行目） */
+#foodListDashboard li div:first-child {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;       /* ← 追加：長い食品名がはみ出さないようにする */
+  text-overflow: ellipsis;
+}
+
+/* カロリー・タンパク質（2行目） */
+#foodListDashboard li div:last-child {
+  display: block;
+  width: 100%;
+  white-space: normal;
+  line-height: 1.2;
+  font-size: 13px; /* ← 少し小さくして食品名との区別を明確に */
+  opacity: 0.75;
+  margin: 0;
+  padding: 0;
+}
+
+/* =====================
+   スケジュールリスト
+   ===================== */
+#planListDashboard {
+  padding: 0;
+  margin: 8px 0;
+}
+
+#planListDashboard li {
+  list-style: none;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+/* =====================
+   レスポンシブ
+   ===================== */
+@media (max-width: 600px) {
+  .card-container {
+    grid-template-columns: 1fr; /* ← 追加：スマホでは1列表示 */
+  }
+}

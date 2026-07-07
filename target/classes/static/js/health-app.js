@@ -18,7 +18,7 @@ if (saveWeightBtn) {
 
     const bmi = (weight / ((height / 100) ** 2)).toFixed(1);
 
-    saveWeightToLocal(weight);
+    saveWeightToLocal(weight, bmi);
     const today = new Date().toLocaleDateString("ja-JP");
     localStorage.setItem("lastWeightDate", today);
 
@@ -27,11 +27,10 @@ if (saveWeightBtn) {
   });
 }
 
-function saveWeightToLocal(weight) {
+function saveWeightToLocal(weight, bmi) {
   const today = new Date().toLocaleDateString("ja-JP");
   const data = JSON.parse(localStorage.getItem("weights") || "[]");
-
-  data.push({ date: today, weight: weight });
+  data.push({ date: today, weight: weight, bmi: bmi });
   localStorage.setItem("weights", JSON.stringify(data));
 }
 
@@ -41,9 +40,9 @@ function updateChart() {
 
   if (!height || data.length === 0) return;
 
-  const labels = data.map(d => d.date);
+  const labels  = data.map(d => d.date);
   const weights = data.map(d => d.weight);
-  const bmis = data.map(d => (d.weight / ((height / 100) ** 2)).toFixed(1));
+  const bmis    = data.map(d => (d.weight / ((height / 100) ** 2)).toFixed(1));
 
   const ctx = document.getElementById("weightChart");
   if (!ctx) return;
@@ -76,7 +75,7 @@ function updateChart() {
     },
     options: {
       scales: {
-        y: { beginAtZero: false },
+        y:  { beginAtZero: false },
         y1: { beginAtZero: false, position: "right" }
       }
     }
@@ -90,7 +89,7 @@ const saveFoodBtn = document.getElementById("saveFoodBtn");
 
 if (saveFoodBtn) {
   saveFoodBtn.addEventListener("click", () => {
-    const name = document.getElementById("foodName").value;
+    const name    = document.getElementById("foodName").value;
     const calorie = document.getElementById("calorie").value;
     const protein = document.getElementById("protein").value;
 
@@ -100,18 +99,18 @@ if (saveFoodBtn) {
     }
 
     const foodData = {
-      name: name,
+      name:    name,
       calorie: Number(calorie),
       protein: Number(protein)
     };
 
-    const savedFoods = JSON.parse(localStorage.getItem("todayFoods")) || [];
+    const savedFoods = JSON.parse(localStorage.getItem("todayFoods") || "[]");
     savedFoods.push(foodData);
     localStorage.setItem("todayFoods", JSON.stringify(savedFoods));
 
     document.getElementById("foodName").value = "";
-    document.getElementById("calorie").value = "";
-    document.getElementById("protein").value = "";
+    document.getElementById("calorie").value  = "";
+    document.getElementById("protein").value  = "";
 
     alert("保存しました");
     location.href = "health-dashboard.html";
@@ -121,6 +120,15 @@ if (saveFoodBtn) {
 function updateFoodList() {
   const list = document.getElementById("foodList");
   if (!list) return;
+
+  const data = JSON.parse(localStorage.getItem("todayFoods") || "[]");
+  list.innerHTML = "";
+
+  data.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.name}（${item.calorie}kcal / タンパク質${item.protein}g）`;
+    list.appendChild(li);
+  });
 }
 
 // ===============================
@@ -129,7 +137,7 @@ function updateFoodList() {
 const addTodoBtn = document.getElementById("addTodoBtn");
 if (addTodoBtn) {
   addTodoBtn.addEventListener("click", () => {
-    const text = document.getElementById("todoInput").value;
+    const text = document.getElementById("todoInput").value.trim();
 
     if (!text) {
       alert("やることを入力してね");
@@ -145,8 +153,6 @@ if (addTodoBtn) {
     alert("追加しました");
     location.href = "health-dashboard.html";
   });
-
-  updateTodoList();
 }
 
 function updateTodoList() {
@@ -158,14 +164,14 @@ function updateTodoList() {
 
   data.forEach((item, index) => {
     const li = document.createElement("li");
-    li.style.display = "flex";
+    li.style.display   = "flex";
     li.style.alignItems = "center";
-    li.style.gap = "8px";
+    li.style.gap       = "8px";
     li.style.listStyle = "none";
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = item.done;
+    const checkbox     = document.createElement("input");
+    checkbox.type      = "checkbox";
+    checkbox.checked   = item.done;
 
     checkbox.addEventListener("change", () => {
       data[index].done = checkbox.checked;
@@ -178,11 +184,11 @@ function updateTodoList() {
 
     if (item.done) {
       span.style.textDecoration = "line-through";
-      span.style.opacity = "0.6";
+      span.style.opacity        = "0.6";
     }
 
-    li.appendChild(span);
     li.appendChild(checkbox);
+    li.appendChild(span);
     list.appendChild(li);
   });
 }
@@ -194,7 +200,7 @@ const addPlanBtn = document.getElementById("addPlanBtn");
 if (addPlanBtn) {
   addPlanBtn.addEventListener("click", () => {
     const time = document.getElementById("timeInput").value;
-    const plan = document.getElementById("planInput").value;
+    const plan = document.getElementById("planInput").value.trim();
 
     if (!time || !plan) {
       alert("時間と予定を入力してね");
@@ -210,8 +216,6 @@ if (addPlanBtn) {
     alert("追加しました");
     location.href = "health-dashboard.html";
   });
-
-  updatePlanList();
 }
 
 function updatePlanList() {
@@ -242,11 +246,11 @@ function loadLatestWeight() {
 
 function loadLatestBMI() {
   const height = localStorage.getItem("latestHeight");
-  const data = JSON.parse(localStorage.getItem("weights") || "[]");
+  const data   = JSON.parse(localStorage.getItem("weights") || "[]");
   if (!height || data.length === 0) return;
 
   const latest = data[data.length - 1].weight;
-  const bmi = (latest / ((height / 100) ** 2)).toFixed(1);
+  const bmi    = (latest / ((height / 100) ** 2)).toFixed(1);
 
   const el = document.getElementById("latestBMI");
   if (el) el.textContent = "BMI: " + bmi;
@@ -281,17 +285,14 @@ function loadTodayFoodsDashboard() {
     const li = document.createElement("li");
 
     const name = document.createElement("div");
-    name.textContent = item.name;
+    name.textContent   = item.name;
     name.style.fontWeight = "bold";
     name.style.whiteSpace = "nowrap";
 
     const detail = document.createElement("div");
-    detail.innerHTML = `
-      カロリー：${item.calorie} kcal<br>
-      タンパク質：${item.protein} g
-    `;
+    detail.innerHTML   = `カロリー：${item.calorie} kcal<br>タンパク質：${item.protein} g`;
     detail.style.fontSize = "14px";
-    detail.style.opacity = "0.8";
+    detail.style.opacity  = "0.8";
 
     li.appendChild(name);
     li.appendChild(detail);
@@ -308,13 +309,13 @@ function loadTodoDashboard() {
 
   data.forEach((item, index) => {
     const li = document.createElement("li");
-    li.style.display = "flex";
+    li.style.display    = "flex";
     li.style.alignItems = "center";
-    li.style.gap = "8px";
-    li.style.listStyle = "none";
+    li.style.gap        = "8px";
+    li.style.listStyle  = "none";
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
+    const checkbox   = document.createElement("input");
+    checkbox.type    = "checkbox";
     checkbox.checked = item.done;
 
     checkbox.addEventListener("change", () => {
@@ -326,8 +327,13 @@ function loadTodoDashboard() {
     const span = document.createElement("span");
     span.textContent = item.text;
 
-    li.appendChild(span);
+    if (item.done) {
+      span.style.textDecoration = "line-through";
+      span.style.opacity        = "0.6";
+    }
+
     li.appendChild(checkbox);
+    li.appendChild(span);
     list.appendChild(li);
   });
 }
@@ -347,14 +353,14 @@ function loadPlanDashboard() {
 }
 
 function loadMiniChart() {
-  const data = JSON.parse(localStorage.getItem("weights") || "[]");
+  const data   = JSON.parse(localStorage.getItem("weights") || "[]");
   const height = localStorage.getItem("latestHeight");
 
   if (!height || data.length === 0) return;
 
-  const labels = data.map(d => d.date);
+  const labels  = data.map(d => d.date);
   const weights = data.map(d => d.weight);
-  const bmis = data.map(d => (d.weight / ((height / 100) ** 2)).toFixed(1));
+  const bmis    = data.map(d => (d.weight / ((height / 100) ** 2)).toFixed(1));
 
   const ctx = document.getElementById("miniChart");
   if (!ctx) return;
@@ -383,14 +389,18 @@ function loadMiniChart() {
     },
     options: {
       scales: {
-        y: { beginAtZero: false },
+        y:  { beginAtZero: false },
         y1: { beginAtZero: false, position: "right" }
       }
     }
   });
 }
 
+// ===============================
+// 各ページの初期化
+// ===============================
 window.addEventListener("DOMContentLoaded", () => {
+  // ダッシュボード
   loadLatestWeight();
   loadLatestBMI();
   loadTodayCalorie();
@@ -398,4 +408,13 @@ window.addEventListener("DOMContentLoaded", () => {
   loadTodoDashboard();
   loadPlanDashboard();
   loadMiniChart();
+
+  // 食事入力ページ
+  updateFoodList();
+
+  // ToDoページ
+  updateTodoList();
+
+  // スケジュールページ
+  updatePlanList();
 });
