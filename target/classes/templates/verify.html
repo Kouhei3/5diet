@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>アカウント認証 | 5DIET</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container">
+    <div class="brand-header">
+        <div class="brand-badge">5DIET</div>
+        <h1>アカウント認証</h1>
+        <p class="subtitle">
+            登録したメールアドレス宛に認証コードを送信しました。<br>
+            メールをご確認のうえ、コードを入力して本登録を完了してください。
+        </p>
+        <p id="message" class="message"></p>
+    </div>
+
+    <!-- ★★★ ここが超重要：Servlet に送るフォーム ★★★ -->
+    <form id="verifyForm" action="/api/verify" method="post">
+
+        <!-- ★ 新規登録時に使った username を hidden で送る -->
+        <input type="hidden" name="username" id="hiddenUsername">
+
+        <div class="field-row">
+            <label for="verificationCode">認証コード</label>
+            <input type="text" id="verificationCode" name="code" placeholder="例: 123456" required>
+        </div>
+
+        <button type="submit" class="submit-button">本登録を完了する</button>
+    </form>
+</div>
+
+<script>
+    // ★ 新規登録画面から username を受け取って hidden にセットする
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get("username");
+    if (username) {
+        document.getElementById("hiddenUsername").value = username;
+    }
+</script>
+
+<script src="js/auth.js"></script>
+</body>
+</html>
