@@ -1,137 +1,155 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.Food;
 import com.example.demo.entity.MealRecord;
+import com.example.demo.repository.FoodRepository;
 import com.example.demo.repository.MealRecordRepository;
-import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/meals")
 @CrossOrigin(origins = "*")
 public class MealController {
 
-    private final MealRecordRepository mealRecordRepository;
-    private final JdbcTemplate jdbcTemplate; // 追加: JOINクエリ用
+    @Autowired
+    private FoodRepository foodRepository;
 
-    public MealController(MealRecordRepository mealRecordRepository, JdbcTemplate jdbcTemplate) {
-        this.mealRecordRepository = mealRecordRepository;
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    @Autowired
+    private MealRecordRepository mealRecordRepository;
 
-    // ────────────────────────────────────────────────
-    // POST /meals  ← mealScript.js の addMeal() から呼ばれる
-    // ────────────────────────────────────────────────
-    @PostMapping
-    public ResponseEntity<Map<String, Object>> saveMeal(@RequestBody Map<String, Object> payload) {
+    // Java起動時に自動で指定の15品目をデータベースに登録する処理
+    @PostConstruct
+    public void initDefaultFoods() {
         try {
-            Long userId  = ((Number) payload.getOrDefault("user_id",  1)).longValue();
-            Long foodId  = ((Number) payload.getOrDefault("food_id",  0)).longValue();
-            Double amountG = ((Number) payload.getOrDefault("amount_g", 0)).doubleValue();
-            String mealType = String.valueOf(payload.getOrDefault("meal_type", "朝食"));
+            if (foodRepository.count() == 0) {
+                String[] names = {
+                    "鶏むね肉", "鶏もも肉", "サラダチキン", "白米", "卵", 
+                    "鮭", "まぐろ赤身", "豆腐", "納豆", "ブロッコリー", 
+                    "レタス", "トマト", "豚ロース", "牛もも肉", "パスタ"
+                };
+                double[][] nutrition = {
+                    {108, 23.3, 1.9, 0}, {190, 16.6, 14.2, 0}, {115, 24.0, 1.5, 0}, {156, 2.5, 0.3, 37.1}, {151, 12.3, 10.3, 0.3},
+                    {124, 22.3, 4.1, 0.1}, {115, 26.4, 1.4, 0.1}, {56, 5.3, 3.5, 2.0}, {190, 16.5, 10.0, 12.1}, {37, 4.3, 0.5, 6.6},
+                    {12, 0.6, 0.1, 2.8}, {20, 0.7, 0.1, 4.7}, {263, 19.3, 19.2, 0.2}, {176, 21.2, 9.6, 0.5}, {150, 5.8, 0.9, 31.0}
+                };
 
-            MealRecord record = new MealRecord(userId, foodId, amountG, mealType, LocalDate.now());
-            mealRecordRepository.save(record);
-
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("message", "登録成功");
-            response.put("id", record.getId());
-            return ResponseEntity.ok(response);
-        } catch (Exception ex) {
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("message", "登録失敗");
-            response.put("error", ex.getMessage());
-            return ResponseEntity.status(500).body(response);
+                for (int i = 0; i < names.length; i++) {
+                    Food food = new Food();
+                    food.setFoodName(names[i]);
+                    food.setCaloriePer100g(BigDecimal.valueOf(nutrition[i][0]));
+                    food.setProteinPer100g(BigDecimal.valueOf(nutrition[i][1]));
+                    food.setFatPer100g(BigDecimal.valueOf(nutrition[i][2]));
+                    food.setCarbohydratePer100g(BigDecimal.valueOf(nutrition[i][3]));
+                    foodRepository.save(food);
+                }
+                System.out.println("🌱 [System] デフォルトの食品データ15品目をRDSに自動登録しました！");
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ デフォルトデータの自動登録中にエラーが発生しました: " + e.getMessage());
         }
     }
 
-    // ────────────────────────────────────────────────
-    // GET /meals/today/{userId}  ← mealScript.js の loadTodayMeals() から呼ばれる
-    // 修正前: 固定値0を返すだけ
-    // 修正後: meal_records × foods を JOIN して当日分を集計
-    // ────────────────────────────────────────────────
-    @GetMapping("/today/{userId}")
-    public ResponseEntity<Map<String, Object>> getTodaySummary(@PathVariable Long userId) {
-        String sql = """
-            SELECT
-                IFNULL(ROUND(SUM(f.calorie_per_100g      * mr.amount_g / 100), 1), 0) AS total_calorie,
-                IFNULL(ROUND(SUM(f.protein_per_100g      * mr.amount_g / 100), 1), 0) AS total_protein,
-                IFNULL(ROUND(SUM(f.fat_per_100g          * mr.amount_g / 100), 1), 0) AS total_fat,
-                IFNULL(ROUND(SUM(f.carbohydrate_per_100g * mr.amount_g / 100), 1), 0) AS total_carbohydrate
-            FROM meal_records mr
-            JOIN foods f ON mr.food_id = f.id
-            WHERE mr.user_id = ?
-              AND mr.record_date = CURDATE()
-            """;
-
-        Map<String, Object> row = jdbcTemplate.queryForMap(sql, userId);
-
-        // キー名はmealScript.jsが期待する名前に合わせる
-        Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("total_calorie",      row.get("total_calorie"));
-        summary.put("total_protein",      row.get("total_protein"));
-        summary.put("total_fat",          row.get("total_fat"));
-        summary.put("total_carbohydrate", row.get("total_carbohydrate"));
-
-        return ResponseEntity.ok(summary);
+    // 1. 全食品マスタの取得
+    @GetMapping("/foods")
+    public List<Map<String, Object>> getAllFoods() {
+        return foodRepository.findAll().stream().map(food -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", food.getId());
+            map.put("food_name", food.getFoodName());
+            map.put("calorie_per_100g", food.getCaloriePer100g());
+            map.put("protein_per_100g", food.getProteinPer100g());
+            map.put("fat_per_100g", food.getFatPer100g());
+            map.put("carbohydrate_per_100g", food.getCarbohydratePer100g());
+            return map;
+        }).collect(Collectors.toList());
     }
 
-    // ────────────────────────────────────────────────
-    // GET /meals/history/{userId}  ← mealScript.js の loadMealHistory() から呼ばれる
-    // 修正前: 空リストを返すだけ
-    // 修正後: 当日の食事履歴を1件ずつ返す（カロリー・PFC付き）
-    // ────────────────────────────────────────────────
-    @GetMapping("/history/{userId}")
-    public ResponseEntity<List<Map<String, Object>>> getHistory(@PathVariable Long userId) {
-        String sql = """
-            SELECT
-                mr.id,
-                f.food_name,
-                mr.amount_g,
-                mr.meal_type,
-                ROUND(f.calorie_per_100g      * mr.amount_g / 100, 1) AS calorie,
-                ROUND(f.protein_per_100g      * mr.amount_g / 100, 1) AS protein,
-                ROUND(f.fat_per_100g          * mr.amount_g / 100, 1) AS fat,
-                ROUND(f.carbohydrate_per_100g * mr.amount_g / 100, 1) AS carbohydrate
-            FROM meal_records mr
-            JOIN foods f ON mr.food_id = f.id
-            WHERE mr.user_id = ?
-              AND mr.record_date = CURDATE()
-            ORDER BY mr.id DESC
-            """;
+    // 2. 新しい食事記録の登録
+    @PostMapping("/meals")
+    public Map<String, String> addMeal(@RequestBody Map<String, Object> payload) {
+        Integer userId = (Integer) payload.get("user_id");
+        Integer foodId = (Integer) payload.get("food_id");
+        Double amountG = Double.parseDouble(payload.get("amount_g").toString());
+        String mealType = (String) payload.get("meal_type");
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, userId);
+        Food food = foodRepository.findById(foodId)
+                .orElseThrow(() -> new RuntimeException("指定された食品が見つかりません。ID: " + foodId));
 
-        // mealScript.js の loadMealHistory() が参照するキー名に揃える
-        List<Map<String, Object>> result = rows.stream().map(row -> {
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("id",           row.get("id"));
-            item.put("food_name",    row.get("food_name"));
-            item.put("amount_g",     row.get("amount_g"));
-            item.put("meal_type",    row.get("meal_type"));
-            item.put("calorie",      row.get("calorie"));
-            item.put("protein",      row.get("protein"));
-            item.put("fat",          row.get("fat"));
-            item.put("carbohydrate", row.get("carbohydrate"));
-            return item;
-        }).toList();
+        MealRecord record = new MealRecord();
+        record.setUserId(userId);
+        record.setFood(food);
+        record.setAmountG(BigDecimal.valueOf(amountG));
+        record.setMealType(mealType);
+        record.setRecordDate(LocalDate.now());
 
-        return ResponseEntity.ok(result);
+        mealRecordRepository.save(record);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "登録成功");
+        return response;
     }
 
-    // ────────────────────────────────────────────────
-    // DELETE /meals/{id}  ← mealScript.js の deleteMeal() から呼ばれる
-    // ────────────────────────────────────────────────
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> deleteMeal(@PathVariable Long id) {
+    // 3. 今日の摂取カロリー・PFCの集計取得
+    @GetMapping("/meals/today/{userId}")
+    public Map<String, Object> getTodaySummary(@PathVariable Integer userId) {
+        List<MealRecord> records = mealRecordRepository.findByUserIdAndRecordDateOrderByIdDesc(userId, LocalDate.now());
+
+        BigDecimal totalCal = BigDecimal.ZERO;
+        BigDecimal totalProtein = BigDecimal.ZERO;
+        BigDecimal totalFat = BigDecimal.ZERO;
+        BigDecimal totalCarb = BigDecimal.ZERO;
+
+        for (MealRecord r : records) {
+            BigDecimal factor = r.getAmountG().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+            totalCal = totalCal.add(r.getFood().getCaloriePer100g().multiply(factor));
+            totalProtein = totalProtein.add(r.getFood().getProteinPer100g().multiply(factor));
+            totalFat = totalFat.add(r.getFood().getFatPer100g().multiply(factor));
+            totalCarb = totalCarb.add(r.getFood().getCarbohydratePer100g().multiply(factor));
+        }
+
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("total_calorie", totalCal.setScale(1, RoundingMode.HALF_UP));
+        summary.put("total_protein", totalProtein.setScale(1, RoundingMode.HALF_UP));
+        summary.put("total_fat", totalFat.setScale(1, RoundingMode.HALF_UP));
+        summary.put("total_carbohydrate", totalCarb.setScale(1, RoundingMode.HALF_UP));
+        return summary;
+    }
+
+    // 4. 今日の食事履歴リストの取得
+    @GetMapping("/meals/history/{userId}")
+    public List<Map<String, Object>> getMealHistory(@PathVariable Integer userId) {
+        List<MealRecord> records = mealRecordRepository.findByUserIdAndRecordDateOrderByIdDesc(userId, LocalDate.now());
+
+        return records.stream().map(r -> {
+            BigDecimal factor = r.getAmountG().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", r.getId());
+            map.put("food_name", r.getFood().getFoodName());
+            map.put("amount_g", r.getAmountG());
+            map.put("meal_type", r.getMealType());
+            map.put("calorie", r.getFood().getCaloriePer100g().multiply(factor).setScale(1, RoundingMode.HALF_UP));
+            map.put("protein", r.getFood().getProteinPer100g().multiply(factor).setScale(1, RoundingMode.HALF_UP));
+            map.put("fat", r.getFood().getFatPer100g().multiply(factor).setScale(1, RoundingMode.HALF_UP));
+            map.put("carbohydrate", r.getFood().getCarbohydratePer100g().multiply(factor).setScale(1, RoundingMode.HALF_UP));
+            return map;
+        }).collect(Collectors.toList());
+    }
+
+    // 5. 食事履歴の削除
+    @DeleteMapping("/meals/{id}")
+    public Map<String, String> deleteMeal(@PathVariable Integer id) {
         mealRecordRepository.deleteById(id);
-        Map<String, Object> response = new LinkedHashMap<>();
+        Map<String, String> response = new HashMap<>();
         response.put("message", "削除成功");
-        return ResponseEntity.ok(response);
+        return response;
     }
 }

@@ -1,96 +1,123 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>食事カロリー管理</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="mealStyle.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>食事カロリー管理</title>
+    <link rel="stylesheet" href="css/mealStyle.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
-
 <body>
+    <div class="app-container">
+        <header class="app-header">
+            <div>
+                <h1 class="app-logo">FIT<span class="logo-accent">RECORD</span></h1>
+                <div class="page-title">MEAL MANAGEMENT</div>
+            </div>
+        </header>
 
-  <main class="container">
+        <main class="app-main">
+            
+            <section class="summary-section card">
+                <div class="result-box">
+                    <p class="summary-label">現在の摂取カロリー</p>
+                    <div class="calorie-display">
+                        <strong id="totalCalorie">0</strong> <span class="unit">kcal</span>
+                    </div>
+                </div>
 
-    <h1>食事カロリー管理</h1>
+                <div class="target-box">
+                    <div class="target-item">
+                        <span>目標</span>
+                        <strong id="targetCalorie">1800</strong><span class="unit-s">kcal</span>
+                    </div>
+                    <div class="target-divider"></div>
+                    <div class="target-item remaining">
+                        <span>残り</span>
+                        <strong id="remainingCalorie">1800</strong><span class="unit-s">kcal</span>
+                    </div>
+                </div>
 
-    <section class="card">
-      <h2>食事を記録</h2>
+                <div class="pfc-grid">
+                    <div class="pfc-item p-theme">
+                        <span class="pfc-label">Protein</span>
+                        <strong id="protein">0<span class="g-unit">g</span></strong>
+                        <div class="pfc-bar-bg"><div id="proteinBar" class="pfc-bar" style="width: 0%"></div></div>
+                        <small id="proteinRatio">0%</small>
+                    </div>
+                    <div class="pfc-item f-theme">
+                        <span class="pfc-label">Fat</span>
+                        <strong id="fat">0<span class="g-unit">g</span></strong>
+                        <div class="pfc-bar-bg"><div id="fatBar" class="pfc-bar" style="width: 0%"></div></div>
+                        <small id="fatRatio">0%</small>
+                    </div>
+                    <div class="pfc-item c-theme">
+                        <span class="pfc-label">Carbs</span>
+                        <strong id="carbs">0<span class="g-unit">g</span></strong>
+                        <div class="pfc-bar-bg"><div id="carbsBar" class="pfc-bar" style="width: 0%"></div></div>
+                        <small id="carbsRatio">0%</small>
+                    </div>
+                </div>
+            </section>
 
-      <label for="searchFood">食品検索</label>
-      <input
-        type="text"
-        id="searchFood"
-        placeholder="例：白米、サラダ、卵"
-        oninput="filterFoods()">
+            <section class="card input-section">
+                <h2>食事を記録</h2>
+                
+                <div class="input-group">
+                    <label for="searchFood">🔍 食品検索</label>
+                    <input type="text" id="searchFood" placeholder="例：白米、サラダ、卵" oninput="filterFoods()">
+                </div>
 
-      <label for="foodSelect">食品</label>
-      <select id="foodSelect"></select>
+                <div class="input-group">
+                  <label for="foodSelect">🍱 食品の選択</label>
+                  <select id="foodSelect">
+                    <option value="">-- 食品データを読み込み中... --</option>
+                  </select>
+                </div>
 
-      <label for="amount">食べた量(g)</label>
-      <input type="number" id="amount" placeholder="例：150">
+                <div class="input-row">
+                    <div class="input-group flex-2">
+                        <label for="amount">⚖️ 量 (g)</label>
+                        <input type="number" id="amount" placeholder="150" value="100">
+                    </div>
+                    <div class="input-group flex-3">
+                        <label for="mealType">⏰ 食事タイプ</label>
+                        <select id="mealType">
+                            <option value="朝食">☀️ 朝食</option>
+                            <option value="昼食">昼食</option>
+                            <option value="夕食">🌙 夕食</option>
+                            <option value="間食">☕ 間食</option>
+                        </select>
+                    </div>
+                </div>
 
-      <label for="mealType">食事タイプ</label>
-      <select id="mealType">
-        <option value="朝食">朝食</option>
-        <option value="昼食">昼食</option>
-        <option value="夕食">夕食</option>
-        <option value="間食">間食</option>
-      </select>
+                <button class="btn-gradient-save" onclick="addMeal()">この内容で記録する</button>
+            </section>
 
-      <button onclick="addMeal()">記録する</button>
-    </section>
+            <section class="card history-section">
+                <h2>今日の食事履歴</h2>
+                <ul id="mealHistory" class="history-list">
+                    </ul>
+            </section>
 
-    <section class="card">
-      <h2>今日の合計</h2>
+        </main>
 
-      <div class="result-box">
-        <p>摂取カロリー</p>
-        <strong><span id="totalCalorie">0</span> kcal</strong>
-      </div>
+        <nav class="bottom-nav">
+            <button class="nav-item" onclick="window.location.href='exercise.html'">
+                <span class="nav-icon">🏋️</span>
+                <span class="nav-text">Workout</span>
+            </button>
+            <button class="nav-item record" onclick="window.location.href='scheduleIndex.html'">
+                <div class="center-nav-bg"></div>
+                <span class="nav-icon center">📅</span>
+            </button>
+            <button class="nav-item active" onclick="window.location.href='mealIndex.html'">
+                <span class="nav-icon">🍽️</span>
+                <span class="nav-text">Meal</span>
+            </button>
+        </nav>
+    </div>
 
-      <div class="target-box">
-        <p>目標カロリー：<span id="targetCalorie">1800</span> kcal</p>
-        <p>残り：<span id="remainingCalorie">1800</span> kcal</p>
-      </div>
-
-      <div class="pfc-grid">
-        <div>
-          <p>P</p>
-          <strong><span id="protein">0</span> g</strong>
-          <small><span id="proteinRatio">0</span>%</small>
-        </div>
-
-        <div>
-          <p>F</p>
-          <strong><span id="fat">0</span> g</strong>
-          <small><span id="fatRatio">0</span>%</small>
-        </div>
-
-        <div>
-          <p>C</p>
-          <strong><span id="carbs">0</span> g</strong>
-          <small><span id="carbsRatio">0</span>%</small>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>今日の食事履歴</h2>
-      <ul id="mealHistory" class="history-list"></ul>
-    </section>
-
-  </main>
-
-  <nav class="bottom-nav" style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;display:flex;justify-content:center;gap:28px;padding:10px 0 14px;background:white;border-top:1px solid #ddd;align-items:center;z-index:1000;box-sizing:border-box;">
-    <button class="nav-item" onclick="window.location.href='exercise.html'" style="border:none;background:none;font-size:14px;color:#666;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 12px;">🏋️<span>Workout</span></button>
-    <button class="nav-item" onclick="window.location.href='scheduleIndex.html'" style="border:none;background:none;font-size:14px;color:#666;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 12px;">📅<span>Schedule</span></button>
-    <button class="nav-item active" onclick="window.location.href='mealIndex.html'" style="border:none;background:none;font-size:14px;color:#007aff;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 12px;">🍽️<span>Meal</span></button>
-  </nav>
-
-  <script src="mealSearchUtils.js"></script>
-  <script src="mealScript.js"></script>
+    <script src="js/mealScript.js"></script>
 </body>
-
 </html>

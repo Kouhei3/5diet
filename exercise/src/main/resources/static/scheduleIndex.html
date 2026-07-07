@@ -107,7 +107,7 @@
 
         <div class="sync-buttons">
             <button class="sync-btn btn-ex" onclick="fetchAWSData('workout')">AWS筋トレ同期</button>
-            <button class="sync-btn btn-me" onclick="syncLocalMealData()">ローカル食事同期</button>
+            <button class="sync-btn btn-me" onclick="fetchAWSData('meal')">ローカル食事同期</button>
             <button class="sync-btn btn-ev" onclick="fetchAWSData('workout-menu')">AWSメニュー</button>
         </div>
     </div>
@@ -140,11 +140,19 @@ function getDateString(date) {
     return `${y}-${m}-${d}`;
 }
 
+// 現在の時間を「HH:mm」形式で取得
+function getCurrentTimeString() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
+}
+
 function setDateInputs(dateStr) {
     const dateInput = document.getElementById('manualDate');
     const timeInput = document.getElementById('manualTime');
     if (dateInput) dateInput.value = dateStr;
-    if (timeInput && !timeInput.value) timeInput.value = '08:00';
+    if (timeInput) timeInput.value = getCurrentTimeString();
 }
 
 function saveEvents() {
@@ -164,38 +172,37 @@ function getDisplayTime(dateValue) {
 }
 
 function addCalendarEvent(eventData) {
-    const id = eventData.id || String(Date.now() + Math.random());
+    const id = eventData.id;
     const category = eventData.category || 'event';
     const title = eventData.title || '予定';
-    const start = eventData.start || `${selectedDateStr}T08:00:00`;
+    // デフォルト時間を現在時刻に変更
+    const start = eventData.start || `${selectedDateStr}T${getCurrentTimeString()}:00`;
 
     let backgroundColor = '#ff9500';
     if (category === 'exercise') backgroundColor = '#007aff';
     if (category === 'meal') backgroundColor = '#34c759';
 
     const newEvent = {
-        id,
-        title,
-        start,
-        backgroundColor,
-        borderColor: backgroundColor,
-        extendedProps: {
-            category,
-            rawData: eventData
-        }
+        id, title, start, backgroundColor, borderColor: backgroundColor,
+        extendedProps: { category, rawData: eventData }
     };
 
-    if (!calendar.getEventById(id)) {
-        calendar.addEvent(newEvent);
-    }
+    const oldEvent = calendar.getEventById(id);
+    if (oldEvent) oldEvent.remove();
+    calendar.addEvent(newEvent);
 
-    if (!savedEvents.some(ev => ev.id === id)) {
-        savedEvents.push(newEvent);
-        saveEvents();
+    if (String(id).startsWith('manual_')) {
+        if (!savedEvents.some(ev => ev.id === id)) {
+            savedEvents.push(newEvent);
+            saveEvents();
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    savedEvents = savedEvents.filter(ev => String(ev.id).startsWith('manual_') && !String(ev.id).includes('null'));
+    saveEvents();
+
     const calendarEl = document.getElementById('calendar');
     setDateInputs(selectedDateStr);
 
@@ -216,21 +223,25 @@ document.addEventListener('DOMContentLoaded', function() {
             setDateInputs(selectedDateStr);
             updateDetailSection(dateStr);
         }
-        
     });
 
     calendar.render();
-    updateDetailSection(selectedDateStr);
-    // ✨ カレンダーの描画が終わったら、食事データを同期する
-    syncMealsWithCalendar(calendar);
-    
-    // 起動時にAWS RDSから自動同期する
+    refreshAllData();
+});
+
+function refreshAllData() {
+    calendar.getEvents().forEach(ev => {
+        if (!ev.id.startsWith('manual_')) ev.remove();
+    });
+
     Promise.all([
         fetchAWSData('workout'),
         fetchAWSData('meal'),
         fetchAWSData('workout-menu')
-    ]);
-});
+    ]).then(() => {
+        updateDetailSection(selectedDateStr);
+    });
+}
 
 async function fetchAWSData(type) {
     const endpoints = {
@@ -256,64 +267,60 @@ async function fetchAWSData(type) {
                 const dateValue = log.date;
                 if (!dateValue) return;
 
-                const start = dateValue.includes('T') ? dateValue : `${dateValue}T08:00:00`;
-                
+                // 💡 AWSデータに時間が無い場合の「08:00」を「現在時刻」に変更！
+                const start = dateValue.includes('T') ? dateValue : `${dateValue}T${getCurrentTimeString()}:00`;
                 const exerciseName = log.exercise ? log.exercise.name : '筋トレ';
                 const exerciseType = log.exercise ? log.exercise.type : 'weight';
                 const reps = log.reps || 0;
                 const weight = log.weight || 0;
                 
-                const detailText = exerciseType === 'bodyweight'
-                    ? `${reps}回`
-                    : `${weight}kg × ${reps}回`;
+                const detailText = exerciseType === 'bodyweight' ? `${reps}回` : `${weight}kg × ${reps}回`;
                 const title = `💪 ${exerciseName} (${detailText})`;
 
-                addCalendarEvent({
-                    id: log.id ? `aws_workout_${log.id}` : `aws_workout_${Date.now() + Math.random()}`,
-                    title,
-                    start,
-                    category: 'exercise'
-                });
+                const eventId = !log.id || String(log.id).includes('null') 
+                    ? `exercise_${log.date}_${btoa(encodeURIComponent(title)).substring(0,10)}`
+                    : `aws_workout_${log.id}`;
+
+                addCalendarEvent({ id: eventId, title, start, category: 'exercise' });
             });
         }
 
         if (type === 'meal') {
             data.forEach(item => {
                 const dateValue = item.date;
-                const timeValue = item.time || '08:00';
+                // 💡 AWSデータに時間が無い場合の「08:00」を「現在時刻」に変更！
+                const timeValue = item.time || item.mealTime || getCurrentTimeString();
                 if (!dateValue) return;
 
                 const start = `${dateValue}T${timeValue}:00`;
                 const title = `🍳 ${item.title}`;
 
-                addCalendarEvent({
-                    id: item.id ? `aws_meal_${item.id}` : `aws_meal_${Date.now() + Math.random()}`,
-                    title,
-                    start,
-                    category: 'meal'
-                });
+                const eventId = !item.id || String(item.id).includes('null')
+                    ? `meal_${item.date}_${btoa(encodeURIComponent(item.title)).substring(0,10)}`
+                    : `aws_meal_${item.id}`;
+
+                addCalendarEvent({ id: eventId, title, start, category: 'meal' });
             });
         }
 
         if (type === 'workout-menu') {
             data.forEach(item => {
                 const dateValue = item.date;
-                const timeValue = item.time || '08:00';
+                // 💡 AWSデータに時間が無い場合の「08:00」を「現在時刻」に変更！
+                const timeValue = item.time || item.mealTime || getCurrentTimeString();
                 if (!dateValue) return;
 
                 const start = `${dateValue}T${timeValue}:00`;
                 const title = `📅 ${item.title}`;
 
-                addCalendarEvent({
-                    id: item.id ? `aws_menu_${item.id}` : `aws_menu_${Date.now() + Math.random()}`,
-                    title,
-                    start,
-                    category: 'event'
-                });
+                const eventId = !item.id || String(item.id).includes('null')
+                    ? `menu_${item.date}_${btoa(encodeURIComponent(item.title)).substring(0,10)}`
+                    : `aws_menu_${item.id}`;
+
+                addCalendarEvent({ id: eventId, title, start, category: 'event' });
             });
         }
 
-        updateDetailSection(selectedDateStr);
         console.log(`${type} の同期が完了しました`);
     } catch (error) {
         console.error(`${type} の同期に失敗しました:`, error);
@@ -353,108 +360,51 @@ function updateDetailSection(dateStr) {
     });
 }
 
-// 🌟 ここが超重要！削除機能をAWS通信対応（async）に書き換えました！
 async function deleteItem(id) {
-    if (confirm('この記録をカレンダーから完全に削除しますか？\n（データベースからも削除されます）')) {
-        
-        // もし AWS の筋トレデータなら、APIを叩いてデータベースから削除！
-        if (id.startsWith('aws_workout_')) {
-            const dbId = id.replace('aws_workout_', ''); // 実際のIDの数字だけを取り出す
-            try {
-                const response = await fetch(`/api/records/${dbId}`, { method: 'DELETE' });
-                if (!response.ok) {
-                    alert('データベースからの削除に失敗しました。');
-                    return; // 失敗したらカレンダーからも消さない
-                }
-                console.log(`AWS RDSのデータ (ID: ${dbId}) を削除しました。`);
-            } catch (error) {
-                console.error('削除エラー:', error);
-                alert('通信エラーが発生しました。サーバーが動いているか確認してください。');
-                return;
-            }
-        }
-
-        function deleteCalendarEvent(id) {
-    // 🛑 もし削除しようとした予定が「食事データ」だった場合
-    if (String(id).startsWith('server_meal_')) {
+    if (id.startsWith('meal_') || id.startsWith('aws_meal_')) {
         alert('食事履歴は「食事カロリー管理（Meal）」画面から削除してください。');
-        return; // ここで処理を終了させ、筋トレの削除APIに行かせない
-        }
-
-    // --- ここから下は既存の筋トレ用DB削除処理 ----------------
-    if (confirm('この記録を完全に削除しますか？')) {
-        // fetch(`/api/records/${dbId}`, { method: 'DELETE' }) ... などの処理
-        }
+        return; 
     }
 
-        // ここから下は元の処理（画面のカレンダーとローカルメモリから消す）
-        const ev = calendar.getEventById(id);
-        if (ev) ev.remove();
-        savedEvents = savedEvents.filter(event => event.id !== id);
-        saveEvents();
-        updateDetailSection(selectedDateStr);
+    if (!confirm('この記録をカレンダーから完全に削除しますか？\n（データベースからも削除されます）')) return;
+
+    if (id.startsWith('aws_workout_') || id.startsWith('exercise_')) {
+        const dbId = id.replace('aws_workout_', '').replace('exercise_', '');
+        try {
+            const response = await fetch(`/api/records/${dbId}`, { method: 'DELETE' });
+            if (!response.ok) { alert('データベースからの削除に失敗しました。'); return; }
+        } catch (error) { console.error('削除エラー:', error); alert('通信エラーが発生しました。'); return; }
     }
+
+    if (id.startsWith('aws_menu_') || id.startsWith('menu_')) {
+        const dbId = id.replace('aws_menu_', '').replace('menu_', '');
+        try {
+            const response = await fetch(`/api/workout-menu/${dbId}`, { method: 'DELETE' });
+            if (!response.ok) { alert('データベースからの削除に失敗しました。'); return; }
+        } catch (error) { console.error('削除エラー:', error); alert('通信エラーが発生しました。'); return; }
+    }
+
+    const ev = calendar.getEventById(id);
+    if (ev) ev.remove();
+    savedEvents = savedEvents.filter(event => event.id !== id);
+    saveEvents();
+    updateDetailSection(selectedDateStr);
 }
 
 function addManualSchedule() {
     const category = document.getElementById('manualCategory').value;
     const title = document.getElementById('manualTitle').value.trim();
     const date = document.getElementById('manualDate').value || selectedDateStr;
-    const time = document.getElementById('manualTime').value || '08:00';
+    const time = document.getElementById('manualTime').value || getCurrentTimeString();
 
-    if (!title) {
-        alert('タイトルを入力してください');
-        return;
-    }
+    if (!title) { alert('タイトルを入力してください'); return; }
 
     const start = `${date}T${time}:00`;
     const id = `manual_${Date.now()}`;
-    const displayTitle = category === 'exercise'
-        ? `💪 ${title}`
-        : category === 'meal'
-            ? `🍳 ${title}`
-            : `📅 ${title}`;
+    const displayTitle = category === 'exercise' ? `💪 ${title}` : category === 'meal' ? `🍳 ${title}` : `📅 ${title}`;
 
-    addCalendarEvent({
-        id,
-        title: displayTitle,
-        start,
-        category
-    });
-
+    addCalendarEvent({ id, title: displayTitle, start, category });
     updateDetailSection(selectedDateStr);
-}
-
-// 💡 サーバーから食事データを取得してカレンダーに反映させる関数
-async function syncMealsWithCalendar(calendar) {
-    try {
-        // Javaバックエンドの食事データ用APIを叩く
-        const response = await fetch('/api/meal');
-        if (!response.ok) throw new Error('食事データの取得に失敗しました');
-
-        const meals = await response.json();
-
-        meals.forEach(meal => {
-            // 重複してカレンダーに追加されるのを防ぐため、サーバーデータ専用のIDを作る
-            const eventId = `server_meal_${meal.id}`;
-
-            // まだカレンダーに表示されていなければ追加する
-            if (!calendar.getEventById(eventId)) {
-                calendar.addEvent({
-                    id: eventId,
-                    title: `🍳 ${meal.title}`,             // 食事と一目でわかるようにアイコンを付与
-                    start: `${meal.date}T${meal.time}:00`, // カレンダーが認識できる日時の形式（YYYY-MM-DDTHH:mm:ss）に結合
-                    backgroundColor: '#ff9500',           // 食事イベントはオレンジ色にする（筋トレと色分け）
-                    borderColor: '#ff9500',
-                    allDay: false,
-                    extendedProps: { isMeal: true }        // 食事データであるという目印（後述の削除対策用）
-                });
-            }
-        });
-        console.log("食事データのカレンダー同期が完了しました！");
-    } catch (error) {
-        console.error("食事データの同期エラー:", error);
-    }
 }
 </script>
 

@@ -4,133 +4,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FITNESS APP</title>
-    <link rel="stylesheet" href="exerciseStyle.css">
+    <link rel="stylesheet" href="css/exerciseStyle.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h1 class="app-logo">FIT<span class="logo-accent">RECORD</span></h1>
+            <div>
+                <h1 class="app-logo">FIT<span class="logo-accent">RECORD</span></h1>
+                <div class="page-title" id="header-title">WORKOUT</div>
+            </div>
         </header>
 
         <main class="app-main">
             
             <div id="screen-home" class="screen active">
-                <div class="filter-tabs">
-                    <div class="tab-row">
-                        <button class="home-type-btn active" data-type="weight">🏢 ジム</button>
-                        <button class="home-type-btn" data-type="bodyweight">🏠 自重</button>
-                    </div>
-                    <div class="tab-row level-row">
-                        <button class="home-level-btn active" data-level="初心者">🔰 初心者</button>
-                        <button class="home-level-btn" data-level="中級者">🔥 中級</button>
-                        <button class="home-level-btn" data-level="上級者">🏆 上級</button>
-                    </div>
-                </div>
-
                 <div class="section-header">
-                    <span class="date-today" id="date-today">--月--日</span>
-                    <h3>本日のおすすめ</h3>
+                    <span class="date-today" id="today-date-text">--/-- ---</span>
+                    <h3>どこを鍛える？</h3>
                 </div>
-                <div id="recommend-content" class="card-list"></div>
+                <div id="category-grid" class="category-grid"></div>
             </div>
 
-            <div id="screen-record" class="screen">
+            <div id="sub-screen-exercises" class="sub-screen">
+                <div class="action-bar">
+                    <button class="btn-text" id="btn-back-to-cats">← 戻る</button>
+                    <h3 id="selected-category-title">種目一覧</h3>
+                </div>
+
+                <div class="filter-tabs">
+                    <div class="tab-row">
+                        <button class="home-type-btn active" data-type="all">✨ すべて</button>
+                        <button class="home-type-btn" data-type="weight">🏢 ジム</button>
+                        <button class="home-type-btn" data-type="bodyweight">🏠 自重</button>
+                    </div>
+                    <div class="tab-row level-row" style="margin-top: 6px;">
+                        <button class="home-level-btn active" data-level="all">🌟 全て</button>
+                        <button class="home-level-btn" data-level="beginner">🔰 初級</button>
+                        <button class="home-level-btn" data-level="middle">🔥 中級</button>
+                        <button class="home-level-btn" data-level="advanced">🏆 上級</button>
+                    </div>
+                </div>
                 
-                <div id="sub-screen-category" class="sub-screen active">
-                    <div class="record-type-tabs">
-                        <button class="record-type-btn active" data-type="weight">🏢 ジムメニュー</button>
-                        <button class="record-type-btn" data-type="bodyweight">🏠 自重メニュー</button>
+                <div class="custom-add-box card">
+                    <div class="custom-add-row">
+                        <input type="text" id="custom-exercise-name" placeholder="新しい種目を追加...">
+                        <select id="custom-exercise-type" style="padding: 10px; border-radius: 10px; border: 1px solid var(--border);">
+                            <option value="weight">ウエイト</option>
+                            <option value="bodyweight">自重</option>
+                        </select>
+                        <button class="btn-add" id="btn-add-custom">+</button>
                     </div>
-
-                    <div class="section-header">
-                        <h3>どこを鍛える？</h3>
-                    </div>
-                    <div id="category-grid" class="category-grid"></div>
                 </div>
 
-                <div id="sub-screen-exercise" class="sub-screen">
-                    <div class="action-bar">
-                        <button class="btn-text" id="btn-back-to-category">← 戻る</button>
-                        <h3 id="selected-category-title">胸</h3>
-                    </div>
-                    
-                    <div class="custom-add-box card">
-                        <div class="custom-add-row">
-                            <input type="text" id="custom-exercise-input" placeholder="新しい種目を追加...">
-                            <button class="btn-add" id="btn-add-custom">+</button>
-                        </div>
-                        <input type="text" id="custom-memo-input" class="memo-input" placeholder="種目のメモや説明（任意）">
-                    </div>
+                <div id="exercise-list-container" class="exercise-list"></div>
+            </div>
 
-                    <div id="exercise-list" class="exercise-list"></div>
+            <div id="sub-screen-input" class="sub-screen">
+                <div class="action-bar">
+                    <button class="btn-text" id="btn-back-to-exs">← 種目</button>
+                    <h3 id="selected-exercise-title">--</h3>
+                </div>
+                
+                <div class="exercise-desc-box" id="exercise-desc"></div>
+
+                <div class="previous-record-badge" id="prev-record-text">
+                    前回: データなし
                 </div>
 
-                <div id="sub-screen-input" class="sub-screen">
-                    <div class="action-bar">
-                        <button class="btn-text" id="btn-back-to-exercise">← 種目</button>
-                        <h3 id="selected-exercise-title">--</h3>
-                    </div>
-                    
-                    <div class="exercise-description" id="exercise-description"></div>
-
-                    <div class="previous-record-badge">
-                        前回: <span id="prev-data">データなし</span>
-                    </div>
-
-                    <div class="counter-group">
-                        <div class="counter-card card" id="weight-counter-card">
-                            <label>重量</label>
-                            <div class="counter-controls">
-                                <button class="btn-round" data-type="weight" data-change="-2.5">-2.5</button>
-                                <div class="value-display">
-                                    <input type="number" id="weight-val" class="value-input" value="60"><span class="unit">kg</span>
-                                </div>
-                                <button class="btn-round plus" data-type="weight" data-change="2.5">+2.5</button>
+                <div class="counter-group">
+                    <div class="counter-card card" id="weight-counter-card">
+                        <label>重量</label>
+                        <div class="counter-controls">
+                            <button class="btn-round" id="btn-weight-minus">-</button>
+                            <div class="value-display">
+                                <input type="number" id="weight-val" class="value-input" value="40"><span class="unit">kg</span>
                             </div>
-                        </div>
-
-                        <div class="counter-card card">
-                            <label>回数 (Reps)</label>
-                            <div class="counter-controls">
-                                <button class="btn-round" data-type="reps" data-change="-1">-1</button>
-                                <div class="value-display">
-                                    <input type="number" id="reps-val" class="value-input" value="10"><span class="unit">回</span>
-                                </div>
-                                <button class="btn-round plus" data-type="reps" data-change="1">+1</button>
-                            </div>
+                            <button class="btn-round plus" id="btn-weight-plus">+</button>
                         </div>
                     </div>
 
-                    <button class="btn-gradient-record" id="btn-save-log">ワークアウトを記録</button>
+                    <div class="counter-card card">
+                        <label>回数 (Reps)</label>
+                        <div class="counter-controls">
+                            <button class="btn-round" id="btn-reps-minus">-</button>
+                            <div class="value-display">
+                                <input type="number" id="reps-val" class="value-input" value="10"><span class="unit">回</span>
+                            </div>
+                            <button class="btn-round plus" id="btn-reps-plus">+</button>
+                        </div>
+                    </div>
                 </div>
+
+                <button class="btn-gradient-record" id="btn-save-log">ワークアウトを記録</button>
             </div>
 
             <div id="screen-history" class="screen">
-                <div class="history-filter-zone">
-                    <select id="history-category-filter" class="modern-select"></select>
+                <div class="section-header">
+                    <h3>トレーニング履歴</h3>
                 </div>
-                <div id="history-content" class="timeline-list"></div>
+                <div id="history-timeline" class="timeline-list"></div>
             </div>
 
         </main>
 
         <nav class="bottom-nav" id="bottom-nav">
-            <button class="nav-item active" data-target="screen-home" onclick="window.location.href='exercise.html'">
+            <button class="nav-item active" data-target="screen-home">
                 <span class="nav-icon">🏋️</span>
                 <span class="nav-text">Workout</span>
             </button>
-            <button class="nav-item record" data-target="screen-record" onclick="window.location.href='scheduleIndex.html'">
+            <button class="nav-item record" onclick="window.location.href='scheduleIndex.html'">
                 <div class="center-nav-bg"></div>
                 <span class="nav-icon center">📅</span>
             </button>
-            <button class="nav-item" data-target="screen-history" onclick="window.location.href='mealIndex.html'">
+            <button class="nav-item" onclick="window.location.href='mealIndex.html'">
                 <span class="nav-icon">🍽️</span>
                 <span class="nav-text">Meal</span>
             </button>
         </nav>
     </div>
 
-    <script src="exerciseApp.js"></script>
+    <script src="js/exerciseApp.js"></script>
 </body>
 </html>

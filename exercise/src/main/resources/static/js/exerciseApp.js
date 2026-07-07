@@ -13,21 +13,18 @@ const CATEGORIES = [
 ];
 
 const INITIAL_EXERCISES = [
-    // 胸
     { id: 'bench_press', catId: 'chest', name: 'ベンチプレス', type: 'weight', level: 'middle', desc: '仰向けに寝た状態でバーベルを大胸筋の上に下ろし、押し上げる胸の代表的な王道種目です。' },
     { id: 'push_up', catId: 'chest', name: 'プッシュアップ(腕立て伏せ)', type: 'bodyweight', level: 'beginner', desc: '自分の体重を負荷にして胸、肩、三頭筋を鍛える、どこでもできる基礎的な自重トレーニングです。' },
     { id: 'dumbbell_fly', catId: 'chest', name: 'ダンベルフライ', type: 'weight', level: 'advanced', desc: 'ダンベルを左右に大きく開き、大胸筋をストレッチさせることで強烈な刺激を与えるアイソレーション種目です。' },
-    // 背中
     { id: 'lat_pulldown', catId: 'back', name: 'ラットプルダウン', type: 'weight', level: 'beginner', desc: '上方のバーを胸に引き寄せることで、背中の広がり（広背筋）を作る初心者にもおすすめの種目です。' },
     { id: 'pull_up', catId: 'back', name: 'チンニング(懸垂)', type: 'bodyweight', level: 'advanced', desc: '自重を利用してバーに体をぶら下げて引き上げる、高い負荷と効果を誇る背中の最強種目です。' },
-    // 脚
     { id: 'squat', catId: 'legs', name: 'バーベルスクワット', type: 'weight', level: 'middle', desc: 'バーベルを担いでしゃがみ込む、下半身全体（大腿四頭筋・お尻）をモーレツに鍛え上げるトレーニングの王様です。' },
     { id: 'body_squat', catId: 'legs', name: '自重スクワット', type: 'bodyweight', level: 'beginner', desc: '道具を使わず正しいフォームを習得するための基本トレーニング。基礎代謝アップに最適です。' }
 ];
 
 // 状態管理変数
 let exercises = JSON.parse(localStorage.getItem('dietApp_custom_exs')) || INITIAL_EXERCISES;
-let workoutHistory = []; // 🌟 ローカルストレージではなく、DBから取得するように空配列に変更！
+let workoutHistory = []; 
 let currentCategory = null;
 let currentSelectedExercise = null;
 let filterType = 'all';
@@ -45,32 +42,37 @@ document.addEventListener('DOMContentLoaded', () => {
     initCounters();
     initCustomExercise();
     initRecordSaving();
-    loadHistoryFromDB(); // 🌟 画面を開いたときにデータベースから最新を取得！
+    loadHistoryFromDB(); 
 });
 
 function setTodayDate() {
     const today = new Date();
     const options = { weekday: 'short', month: 'short', day: 'numeric' };
-    document.getElementById('today-date-text').innerText = today.toLocaleDateString('en-US', options).toUpperCase();
+    const target = document.getElementById('today-date-text');
+    if (target) {
+        target.innerText = today.toLocaleDateString('en-US', options).toUpperCase();
+    }
 }
 
 function initNavigation() {
     document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetScreenId = btn.getAttribute('data-target');
-            if(!targetScreenId) return;
+            if(!targetScreenId) return; // 外部リンク（Calendar / Meal）の場合は何もしない（遷移させる）
+
+            e.preventDefault();
 
             document.querySelectorAll('.bottom-nav .nav-item').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.sub-screen').forEach(s => s.classList.remove('active'));
 
             btn.classList.add('active');
-            document.getElementById(targetScreenId).classList.add('active');
+            const targetScreen = document.getElementById(targetScreenId);
+            if (targetScreen) targetScreen.classList.add('active');
 
-            const titleMap = { 'screen-categories': '部位選択', 'screen-history': '履歴リスト' };
+            const titleMap = { 'screen-home': 'WORKOUT', 'screen-history': '履歴リスト' };
             document.getElementById('header-title').innerText = titleMap[targetScreenId] || 'WORKOUT';
             
-            // 履歴タブが開かれたら最新情報をDBから取得して再描画
             if(targetScreenId === 'screen-history') {
                 loadHistoryFromDB();
             }
@@ -81,8 +83,8 @@ function initNavigation() {
 function initSubNavigation() {
     document.getElementById('btn-back-to-cats').addEventListener('click', () => {
         document.getElementById('sub-screen-exercises').classList.remove('active');
-        document.getElementById('screen-categories').classList.add('active');
-        document.getElementById('header-title').innerText = '部位選択';
+        document.getElementById('screen-home').classList.add('active');
+        document.getElementById('header-title').innerText = 'WORKOUT';
     });
 
     document.getElementById('btn-back-to-exs').addEventListener('click', () => {
@@ -97,6 +99,7 @@ function initSubNavigation() {
 // ==========================================================================
 function renderCategories() {
     const grid = document.getElementById('category-grid');
+    if (!grid) return;
     grid.innerHTML = '';
     CATEGORIES.forEach(cat => {
         const card = document.createElement('div');
@@ -113,7 +116,7 @@ function renderCategories() {
 
 function openExercisesScreen(category) {
     currentCategory = category;
-    document.getElementById('screen-categories').classList.remove('active');
+    document.getElementById('screen-home').classList.remove('active');
     document.getElementById('sub-screen-exercises').classList.add('active');
     document.getElementById('selected-category-title').innerText = `${category.name} の種目一覧`;
     document.getElementById('header-title').innerText = `${category.name}の種目`;
@@ -128,6 +131,7 @@ function openExercisesScreen(category) {
 
 function renderExercises() {
     const container = document.getElementById('exercise-list-container');
+    if (!container) return;
     container.innerHTML = '';
 
     const filtered = exercises.filter(ex => {
@@ -179,7 +183,7 @@ function openInputScreen(exercise) {
         document.getElementById('reps-val').value = 10;
     }
 
-    const latest = workoutHistory.find(h => h.exercise.id === exercise.id);
+    const latest = workoutHistory.find(h => h.exercise && h.exercise.id === exercise.id);
     const badge = document.getElementById('prev-record-text');
     if (latest) {
         badge.innerText = exercise.type === 'bodyweight'
@@ -223,6 +227,8 @@ function setupCounter(minusId, plusId, inputId, step, min, max) {
     const plus = document.getElementById(plusId);
     const input = document.getElementById(inputId);
 
+    if (!minus || !plus || !input) return;
+
     minus.addEventListener('click', () => {
         let val = parseFloat(input.value) || 0;
         val = Math.max(min, val - step);
@@ -237,7 +243,9 @@ function setupCounter(minusId, plusId, inputId, step, min, max) {
 }
 
 function initCustomExercise() {
-    document.getElementById('btn-add-custom').addEventListener('click', () => {
+    const btn = document.getElementById('btn-add-custom');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
         const nameInput = document.getElementById('custom-exercise-name');
         const typeSelect = document.getElementById('custom-exercise-type');
         const name = nameInput.value.trim();
@@ -264,16 +272,13 @@ function initCustomExercise() {
 }
 
 // ==========================================================================
-// 🌟 データベース連携処理（取得・保存・削除）
+// データベース連携処理（取得・保存・削除）
 // ==========================================================================
-
-// 🌟 AWS RDSから全履歴を取得する関数
 async function loadHistoryFromDB() {
     try {
         const response = await fetch(BACKEND_URL);
         if (response.ok) {
             workoutHistory = await response.json();
-            // 日付の降順（新しいものが上）になるように並び替え
             workoutHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
             renderHistoryList();
         }
@@ -283,7 +288,11 @@ async function loadHistoryFromDB() {
 }
 
 function initRecordSaving() {
-    document.getElementById('btn-save-log').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-save-log');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+        if (!currentSelectedExercise) return;
+
         const weight = parseFloat(document.getElementById('weight-val').value) || 0;
         const reps = parseInt(document.getElementById('reps-val').value) || 0;
         const date = new Date();
@@ -298,16 +307,20 @@ function initRecordSaving() {
         try {
             const response = await fetch(BACKEND_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(recordData)
             });
 
             if (response.ok) {
-                alert(`${currentSelectedExercise.name} を記録しました！\nカレンダー画面へ同期します。`);
-                // 保存成功したらカレンダー画面へリダイレクト
-                window.location.href = '/index.html';
+                alert(`${currentSelectedExercise.name} を記録しました！`);
+                loadHistoryFromDB(); // 履歴データを再読み込み
+                // 記録画面を閉じ、ホームに戻す
+                document.getElementById('sub-screen-input').classList.remove('active');
+                document.getElementById('screen-home').classList.add('active');
+                document.getElementById('header-title').innerText = 'WORKOUT';
+                document.querySelectorAll('.bottom-nav .nav-item').forEach(b => {
+                    b.classList.toggle('active', b.getAttribute('data-target') === 'screen-home');
+                });
             } else {
                 alert('サーバーへの保存に失敗しました。');
             }
@@ -329,6 +342,7 @@ function renderHistoryList() {
     }
 
     workoutHistory.forEach((log) => {
+        if (!log.exercise) return;
         const dateObj = new Date(log.date);
         const card = document.createElement('div');
         card.className = 'card log-card';
@@ -337,7 +351,6 @@ function renderHistoryList() {
             ? `${log.reps} 回`
             : `${log.weight} kg × ${log.reps} 回`;
 
-        // 🌟 削除ボタンにデータベースの「ID」を持たせる
         card.innerHTML = `
             <div class="log-date-box">
                 <span class="log-day">${dateObj.getDate()}</span>
@@ -352,15 +365,14 @@ function renderHistoryList() {
             </div>
         `;
         
-        // 🌟 AWS RDSからデータを削除する処理
         card.querySelector('.log-delete-btn').addEventListener('click', async (e) => {
             const dbId = e.target.dataset.id;
-            if(confirm('この記録を完全に削除しますか？\n(データベースからも削除されます)')) {
+            if(confirm('この記録を完全に削除しますか？')) {
                 try {
                     const res = await fetch(`${BACKEND_URL}/${dbId}`, { method: 'DELETE' });
                     if (res.ok) {
                         alert("削除しました。");
-                        loadHistoryFromDB(); // 削除後、DBから最新状態を再読み込み！
+                        loadHistoryFromDB();
                     } else {
                         alert("削除に失敗しました。");
                     }
