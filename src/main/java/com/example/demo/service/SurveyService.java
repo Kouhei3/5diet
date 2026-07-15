@@ -1,4 +1,4 @@
-package com.example.demo.controller;
+package com.example.demo.service;
 
 import com.example.demo.entity.SurveyData;
 import com.example.demo.repository.SurveyRepository;
@@ -32,4 +32,16 @@ public class SurveyService {
     public SurveyData getSurveyByUserId(int userId) {
         return repository.findByUserId(userId);
     }
+
+        /**
+     * 既存アンケートデータを更新する（体重・BMI）
+     */
+    public boolean updateSurvey(SurveyData data, int userId) {
+        double bmi = SurveyData.calcBMI(data.getWeight(), data.getHeight());
+        data.setBmi(bmi);
+
+        return repository.update(data, userId);
+    }
 }
+
+

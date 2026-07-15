@@ -3,15 +3,12 @@ com\example\demo\entity\User.class
 com\example\demo\repository\UserDao$ResetInfo.class
 com\example\demo\util\EmailUtil$2.class
 com\example\demo\controller\VerifyApiServlet.class
-com\example\demo\controller\SurveyService.class
 com\example\demo\repository\UserDao$RegisterInfo.class
 com\example\demo\repository\UserDao.class
 com\example\demo\controller\ForgotPasswordApiServlet.class
 com\example\demo\util\DBConnection.class
 com\example\demo\util\EmailUtil$1.class
 com\example\demo\controller\ResetPasswordApiServlet.class
-com\example\demo\repository\SurveyRepository.class
 com\example\demo\repository\UserDao$AuthResult.class
 com\example\demo\util\EmailUtil.class
 com\example\demo\controller\LoginApiServlet.class
-com\example\demo\entity\SurveyData.class

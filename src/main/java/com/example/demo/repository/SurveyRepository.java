@@ -5,43 +5,67 @@ import com.example.demo.util.DBConnection;
 
 import java.sql.*;
 
-/**
- * アンケートデータの永続化（JDBC）
- * 5DIET – SurveyRepository.java
- */
 public class SurveyRepository {
 
     /* =============================================
        INSERT: アンケートデータを保存
        ============================================= */
     public boolean insert(SurveyData d) {
+
+    String sql = """
+        INSERT INTO survey_data (
+            user_id,
+            gender, age, height_cm, weight_kg, bmi, goal_weight_kg,
+            goal_date, remain_days, purpose, purpose_other,
+            activity_level, job_type, diet_exp, meal_style, allergy,
+            created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        """;
+
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setInt(1, d.getUserId());
+        ps.setString(2, d.getGender());
+        ps.setInt(3, d.getAge());
+        ps.setDouble(4, d.getHeight());
+        ps.setDouble(5, d.getWeight());
+        ps.setDouble(6, d.getBmi());
+        ps.setDouble(7, d.getGoalWeight());
+        ps.setString(8, d.getGoalDate());
+        ps.setInt(9, d.getRemainDays());
+        ps.setString(10, d.getPurpose());
+        ps.setString(11, d.getPurposeOther());
+        ps.setString(12, d.getActivityLevel());
+        ps.setString(13, d.getJobType());
+        ps.setString(14, d.getDietExp());
+        ps.setString(15, d.getMealStyle());
+        ps.setString(16, d.getAllergy());
+
+        return ps.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+    /* =============================================
+       UPDATE: 体重と BMI を更新
+       ============================================= */
+    public boolean update(SurveyData d, int userId) {
         String sql = """
-            INSERT INTO survey_data (
-                gender, age, height_cm, weight_kg, bmi, goal_weight_kg,
-                goal_date, remain_days, purpose, purpose_other,
-                activity_level, job_type, diet_exp, meal_style, allergy,
-                created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            UPDATE survey_data SET
+                weight_kg = ?,
+                bmi = ?
+            WHERE user_id = ?
             """;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1,  d.getGender());
-            ps.setInt   (2,  d.getAge());
-            ps.setDouble(3,  d.getHeight());
-            ps.setDouble(4,  d.getWeight());
-            ps.setDouble(5,  d.getBmi());
-            ps.setDouble(6,  d.getGoalWeight());
-            ps.setString(7,  d.getGoalDate());
-            ps.setInt   (8,  d.getRemainDays());
-            ps.setString(9,  d.getPurpose());
-            ps.setString(10, d.getPurposeOther());   // null OK
-            ps.setString(11, d.getActivityLevel());
-            ps.setString(12, d.getJobType());
-            ps.setString(13, d.getDietExp());
-            ps.setString(14, d.getMealStyle());
-            ps.setString(15, d.getAllergy());         // null OK
+            ps.setDouble(1, d.getWeight());
+            ps.setDouble(2, d.getBmi());
+            ps.setInt(3, userId);
 
             return ps.executeUpdate() > 0;
 

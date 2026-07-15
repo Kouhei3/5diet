@@ -6,6 +6,9 @@ package com.example.demo.entity;
  */
 public class SurveyData {
 
+    // ---------- ユーザー情報 ----------
+    private int userId;   // ★ 追加
+
     // ---------- 基本情報 ----------
     private String gender;       // "male" | "female"
     private int    age;          // 歳
@@ -59,7 +62,6 @@ public class SurveyData {
 
     /* ============================================================
        BMI 計算
-       BMI = 体重(kg) ÷ 身長(m)^2
        ============================================================ */
     public static double calcBMI(double weightKg, double heightCm) {
         if (heightCm <= 0 || weightKg <= 0) return 0;
@@ -81,6 +83,16 @@ public class SurveyData {
     /* ============================================================
        Getters / Setters
        ============================================================ */
+
+    // ★★★ ここが今回追加した部分 ★★★
+    public int getUserId() {
+        return userId;
+    }
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+    // ★★★ ここまで ★★★
+
     public String getGender()                  { return gender; }
     public void   setGender(String gender)     { this.gender = gender; }
 
@@ -132,7 +144,8 @@ public class SurveyData {
     @Override
     public String toString() {
         return "SurveyData{" +
-               "gender='"        + gender        + '\'' +
+               "userId="        + userId        +   // ★ 追加
+               ", gender='"     + gender        + '\'' +
                ", age="          + age           +
                ", height="       + height        +
                ", weight="       + weight        +

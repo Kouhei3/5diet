@@ -1,12 +1,6 @@
 /**
  * 5DIET – survey.js
  * 初回アンケートのロジック（マルチステップ対応）
- * ・STEPごとのページ切替（戻る／次へ／送信）
- * ・BMI リアルタイム計算
- * ・残り日数リアルタイム更新
- * ・「その他」選択時のテキストエリア表示
- * ・STEPごとのバリデーション & 送信処理
- * ・あと何問あるかのリアルタイム表示
  */
 
 "use strict";
@@ -42,15 +36,15 @@ const remainingCountEl = document.getElementById("remainingCount");
 /* =====================================================
    ステップ状態
    ===================================================== */
-let currentStep = 0; // 0-indexed
+let currentStep = 0;
 
-/* 全STEPの必須項目総数をあらかじめ数える（「その他」欄は動的なので除外して都度加算） */
+/* =====================================================
+   必須項目カウント
+   ===================================================== */
 function countRequiredInStep(stepEl) {
-  // hidden になっている required は数えない（例: purposeOther 非表示時）
   const requiredEls = Array.from(stepEl.querySelectorAll("[required]")).filter(
     (el) => !el.closest(".hidden"),
   );
-  // ラジオは name ごとに1つとして数える
   const radioNames = new Set();
   let count = 0;
   requiredEls.forEach((el) => {
@@ -108,10 +102,9 @@ function showStep(index) {
 }
 
 /* =====================================================
-   進捗バー & 残り問題数 更新
+   進捗バー更新
    ===================================================== */
 function updateProgress() {
-  // 全体の必須項目数・回答済み数を集計
   let totalRequired = 0;
   let totalFilled = 0;
 
@@ -136,8 +129,8 @@ function updateProgress() {
    BMI 計算
    ===================================================== */
 function calcBMI() {
-  const h = parseFloat(heightInput.value); // cm
-  const w = parseFloat(weightInput.value); // kg
+  const h = parseFloat(heightInput.value);
+  const w = parseFloat(weightInput.value);
 
   if (!h || !w || h <= 0 || w <= 0) {
     bmiValue.textContent = "—";
@@ -146,11 +139,10 @@ function calcBMI() {
     return;
   }
 
-  const hm = h / 100; // m に変換
+  const hm = h / 100;
   const bmi = w / (hm * hm);
   bmiValue.textContent = bmi.toFixed(1);
 
-  // BMI 判定
   let label = "";
   let bg = "rgba(255,255,255,0.15)";
   if (bmi < 18.5) {
@@ -207,18 +199,8 @@ function calcDays() {
 
 goalDateInput.addEventListener("input", calcDays);
 
-// 今日以前の日付を最小値として設定
-(function setMinDate() {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1); // 日付オブジェクトで加算（月またぎ対応）
-  const yyyy = tomorrow.getFullYear();
-  const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
-  const dd = String(tomorrow.getDate()).padStart(2, "0");
-  goalDateInput.min = `${yyyy}-${mm}-${dd}`;
-})();
-
 /* =====================================================
-   「その他」テキストエリアの条件表示
+   「その他」表示切替
    ===================================================== */
 purposeSelect.addEventListener("change", function () {
   if (this.value === "その他") {
@@ -234,7 +216,7 @@ purposeSelect.addEventListener("change", function () {
 });
 
 /* =====================================================
-   バリデーション ユーティリティ
+   エラー処理
    ===================================================== */
 function showError(id, msg) {
   const el = document.getElementById(`err-${id}`);
@@ -252,25 +234,19 @@ function clearError(id) {
   if (input) input.classList.remove("error");
 }
 
-function clearAllErrors() {
-  form.querySelectorAll(".err-msg").forEach((el) => (el.textContent = ""));
-  form.querySelectorAll(".error").forEach((el) => el.classList.remove("error"));
-}
-
 function clearErrorsInStep(stepEl) {
   stepEl.querySelectorAll(".err-msg").forEach((el) => (el.textContent = ""));
   stepEl.querySelectorAll(".error").forEach((el) => el.classList.remove("error"));
 }
 
 /* =====================================================
-   STEPごとのバリデーション
+   STEP バリデーション
    ===================================================== */
 function validateStep(index) {
   const stepEl = steps[index];
   clearErrorsInStep(stepEl);
   let valid = true;
 
-  // ---------- STEP 1: 基本情報 ----------
   if (stepEl.dataset.section === "1") {
     if (!form.querySelector('[name="gender"]:checked')) {
       showError("gender", "性別を選択してください。");
@@ -298,7 +274,6 @@ function validateStep(index) {
     }
   }
 
-  // ---------- STEP 2: 目標設定 ----------
   if (stepEl.dataset.section === "2") {
     const goalDate = goalDateInput.value;
     if (!goalDate) {
@@ -328,7 +303,6 @@ function validateStep(index) {
     }
   }
 
-  // ---------- STEP 3: 生活スタイル ----------
   if (stepEl.dataset.section === "3") {
     if (!document.getElementById("activityLevel").value) {
       showError("activityLevel", "活動レベルを選択してください。");
@@ -340,7 +314,6 @@ function validateStep(index) {
     }
   }
 
-  // ---------- STEP 4: 食事情報 ----------
   if (stepEl.dataset.section === "4") {
     if (!document.getElementById("dietExp").value) {
       showError("dietExp", "食事管理経験を選択してください。");
@@ -356,7 +329,7 @@ function validateStep(index) {
 }
 
 /* =====================================================
-   ナビゲーション：次へ
+   次へ
    ===================================================== */
 nextBtn.addEventListener("click", function () {
   if (!validateStep(currentStep)) {
@@ -374,7 +347,7 @@ nextBtn.addEventListener("click", function () {
 });
 
 /* =====================================================
-   ナビゲーション：戻る
+   戻る
    ===================================================== */
 prevBtn.addEventListener("click", function () {
   if (currentStep > 0) {
@@ -384,7 +357,7 @@ prevBtn.addEventListener("click", function () {
 });
 
 /* =====================================================
-   フォーム送信（最終STEPのみ）
+   フォーム送信（修正版）
    ===================================================== */
 form.addEventListener("submit", function (e) {
   e.preventDefault();
@@ -397,7 +370,6 @@ form.addEventListener("submit", function (e) {
     return;
   }
 
-  // ===== データ収集 =====
   const h = parseFloat(heightInput.value);
   const w = parseFloat(weightInput.value);
   const hm = h / 100;
@@ -427,74 +399,32 @@ form.addEventListener("submit", function (e) {
     allergy: document.getElementById("allergy").value.trim() || null,
   };
 
-  console.log("[5DIET] Survey submitted:", surveyData);
+  fetch("/api/survey", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(surveyData),
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error("送信に失敗しました");
+      return res.json();
+    })
+    .then((data) => {
+      // ★ アンケート体重を専用キーで保存（今日の体重と区別する）
+      localStorage.setItem("surveyHeight", surveyData.height);
+      localStorage.setItem("surveyWeight", surveyData.weight);
+      localStorage.setItem("surveyGoalWeight", surveyData.goalWeight);
 
-  /* ===== バックエンドへ送信（Java Servlet / REST API） =====
-   * 例: fetch('/api/survey', { method:'POST', headers:{'Content-Type':'application/json'},
-   *                             body: JSON.stringify(surveyData) })
-   *       .then(r => r.json()).then(d => window.location.href = '/home.html');
-   */
-
-  // 送信完了 UI（デモ）
-  showSuccess(surveyData);
+      // ダッシュボードへ遷移
+      window.location.href = "/task/health-dashboard";
+    })
+    .catch((err) => {
+      alert("エラーが発生しました: " + err.message);
+    });
 });
 
-/* =====================================================
-   送信完了表示（デモ用）
-   ===================================================== */
-function showSuccess(data) {
-  const main = document.querySelector(".survey-main");
-  main.innerHTML = `
-    <div class="card active" style="text-align:center;padding:48px 24px;">
-      <div style="font-size:3.5rem;margin-bottom:16px;">🎉</div>
-      <div class="section-tag" style="margin-bottom:12px;">COMPLETE</div>
-      <h2 class="section-title" style="border:none;margin-bottom:8px;">
-        アンケートありがとうございます！
-      </h2>
-      <p style="color:var(--text-sub);font-size:0.9rem;margin-bottom:28px;">
-        あなたのプロフィールをもとに<br>パーソナライズされたプランを作成します。
-      </p>
-
-      <div style="
-        background:var(--bg);border-radius:12px;padding:20px 24px;
-        text-align:left;display:inline-block;min-width:260px;
-        font-size:0.88rem;line-height:2;
-      ">
-        <div><b>性別</b>：${data.gender === "male" ? "男性" : "女性"}</div>
-        <div><b>年齢</b>：${data.age} 歳</div>
-        <div><b>身長</b>：${data.height} cm</div>
-        <div><b>体重</b>：${data.weight} kg</div>
-        <div><b>BMI</b>：${data.bmi}</div>
-        <div><b>目標体重</b>：${data.goalWeight} kg</div>
-        <div><b>目標達成日</b>：${data.goalDate}（残り ${data.remainDays} 日）</div>
-        <div><b>目的</b>：${data.purpose}${data.purposeOther ? "（" + data.purposeOther + "）" : ""}</div>
-        <div><b>活動レベル</b>：${data.activityLevel}</div>
-        <div><b>仕事の種類</b>：${data.jobType}</div>
-        <div><b>食事管理経験</b>：${data.dietExp}</div>
-        <div><b>食事スタイル</b>：${data.mealStyle}</div>
-        ${data.allergy ? `<div><b>アレルギー</b>：${data.allergy}</div>` : ""}
-      </div>
-
-      <div style="margin-top:32px;">
-        <a href="/task/health-dashboard.html" style="
-        display:inline-block;padding:12px 32px;
-        background:var(--primary);color:#fff;border-radius:99px;
-        font-weight:700;text-decoration:none;font-size:0.9rem;
-      ">送信する</a>
-
-      </div>
-    </div>
-  `;
-
-  document.getElementById("stepIndicator").classList.add("hidden");
-  document.getElementById("bottomNav").classList.add("hidden");
-  submitNote.classList.add("hidden");
-  progressBar.style.width = "100%";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
 
 /* =====================================================
-   リアルタイムエラー解除 & 進捗更新
+   リアルタイムエラー解除
    ===================================================== */
 form.querySelectorAll("input, select, textarea").forEach((el) => {
   el.addEventListener("input", () => {
