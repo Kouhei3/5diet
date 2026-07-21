@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ログイン - 5DIET</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <span class="brand-badge">5DIET</span>
+            <h1>ログイン</h1>
+            <p class="subtitle">日々の健康状態を記録しましょう</p>
+        </div>
+
+        <div id="message" class="message error" style="display:none;">メールアドレスまたはパスワードが違います。</div>
+
+        <form action="/api/login" method="post">
+            <div class="field-row">
+                <label for="email">メールアドレス</label>
+                <!-- name属性を username から email に変更しました -->
+                <input type="email" id="email" name="email" required placeholder="メールアドレスを入力してください">
+            </div>
+            <div class="field-row">
+                <label for="password">パスワード</label>
+                <div class="password-field">
+                    <input type="password" id="password" name="password" required placeholder="パスワードを入力してください">
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">ログイン</button>
+        </form>
+
+       <div class="auth-links">
+            <a href="/forgot-password.html" style="display:block; text-align:center; margin-bottom:15px; color:#555; text-decoration:underline;">パスワードをお忘れですか？</a>
+            <a href="/register.html" class="button-outline">新規会員登録はこちら</a>
+        </div>
+    </div> <!-- コンテナ閉じタグを追加して補正しました -->
+
+    <script>
+        if(new URLSearchParams(window.location.search).get('error') === '1') {
+            document.getElementById('message').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

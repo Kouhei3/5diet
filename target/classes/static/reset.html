@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>新しいパスワードの設定 | 5DIET</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <div class="brand-header">
+        <div class="brand-badge">5DIET</div>
+        <h1>パスワード再設定</h1>
+        <p class="subtitle">メールに届いた認証コードと、新しいパスワードを入力してください。</p>
+        <p id="message" class="message"></p>
+    </div>
+
+    <form id="resetForm">
+        <div class="field-row">
+            <label for="code">認証コード</label>
+            <input type="text" id="code" required>
+        </div>
+
+        <div class="field-row">
+            <label for="newPassword">新しいパスワード</label>
+            <div class="password-field">
+                <input type="password" id="newPassword" required>
+                <button type="button" class="password-toggle" data-target="newPassword">表示</button>
+            </div>
+        </div>
+
+        <div class="field-row">
+            <label for="confirmPassword">新しいパスワード（確認用）</label>
+            <div class="password-field">
+                <input type="password" id="confirmPassword" required>
+                <button type="button" class="password-toggle" data-target="confirmPassword">表示</button>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-button">パスワードを変更する</button>
+    </form>
+
+    <div class="auth-links">
+        <a href="/login.html" class="button-outline">ログイン画面に戻る</a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('resetForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const code = document.getElementById('code').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const msg = document.getElementById('message');
+        
+        if (newPassword !== confirmPassword) {
+            msg.innerText = 'パスワードが一致しません。';
+            msg.style.color = 'red';
+            return;
+        }
+
+        // メールアドレスを復元
+        const email = sessionStorage.getItem('resetEmail');
+        if (!email) {
+            msg.innerText = 'セッションが切れました。最初の画面からやり直してください。';
+            msg.style.color = 'red';
+            return;
+        }
+
+        // APIへ送信
+        fetch('/api/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, code: code, newPassword: newPassword })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('パスワードの変更が完了しました！新しいパスワードでログインしてください。');
+                sessionStorage.removeItem('resetEmail');
+                window.location.href = '/login.html';
+            } else {
+                msg.innerText = '認証コードが間違っているか、期限切れです。';
+                msg.style.color = 'red';
+            }
+        })
+        .catch(error => {
+            msg.innerText = '通信エラーが発生しました。';
+            msg.style.color = 'red';
+        });
+    });
+
+    document.querySelectorAll('.password-toggle').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.innerText = '非表示';
+            } else {
+                input.type = 'password';
+                this.innerText = '表示';
+            }
+        });
+    });
+</script>
+</body>
+</html>
