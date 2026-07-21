@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#1e4d2b" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>5DIET – 初回診断アンケート</title>
+    <link rel="stylesheet" href="css/survey.css" />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <!-- ヘッダー -->
+      <header class="survey-header">
+        <div class="logo-block">
+          <span class="logo-num">5</span><span class="logo-text">DIET</span>
+        </div>
+        <p class="header-sub">
+          あなたに最適なプランを作成するため、<br />現在の状態と目標を教えてください。
+        </p>
+      </header>
+
+      <!-- ステップインジケーター -->
+      <div class="step-indicator" id="stepIndicator">
+        <span class="step-current" id="stepCurrent">STEP 1 / 4</span>
+      </div>
+
+      <!-- プログレスバー -->
+      <div class="progress-wrap" aria-label="進捗">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <!-- フォーム本体 -->
+      <main class="survey-main">
+        <form id="surveyForm" novalidate>
+          
+          <!-- ========== STEP 01: 基本情報 ========== -->
+          <section class="card active" data-section="1">
+            <div class="section-tag">STEP 01 / BASIC</div>
+            <h2 class="section-title">基本情報を入力してください</h2>
+
+            <!-- 性別 -->
+            <div class="field-group">
+              <label class="field-label">性別<span class="required">必須</span></label>
+              <div class="gender-wrap">
+                <label class="gender-card">
+                  <input type="radio" name="gender" value="male" checked required />
+                  <span class="gender-icon">♂</span>
+                  <span class="gender-txt">男性</span>
+                </label>
+                <label class="gender-card">
+                  <input type="radio" name="gender" value="female" />
+                  <span class="gender-icon">♀</span>
+                  <span class="gender-txt">女性</span>
+                </label>
+              </div>
+              <p class="err-msg" id="err-gender"></p>
+            </div>
+
+            <!-- 年齢 -->
+            <div class="field-group">
+              <label class="field-label" for="age">年齢<span class="required">必須</span></label>
+              <div class="input-unit-wrap">
+                <input
+                  class="input-box"
+                  type="number"
+                  id="age"
+                  name="age"
+                  min="1"
+                  max="120"
+                  value="25"
+                  placeholder="例：25"
+                  required
+                />
+                <span class="unit">歳</span>
+              </div>
+              <p class="err-msg" id="err-age"></p>
+            </div>
+
+            <!-- 身長 -->
+            <div class="field-group">
+              <label class="field-label" for="height">身長<span class="required">必須</span></label>
+              <div class="input-unit-wrap">
+                <input
+                  class="input-box"
+                  type="number"
+                  step="0.1"
+                  id="height"
+                  name="height"
+                  min="50"
+                  max="250"
+                  value="170.0"
+                  placeholder="例：170.0"
+                  required
+                />
+                <span class="unit">cm</span>
+              </div>
+              <p class="err-msg" id="err-height"></p>
+            </div>
+
+            <!-- 体重 -->
+            <div class="field-group">
+              <label class="field-label" for="weight">現在の体重<span class="required">必須</span></label>
+              <div class="input-unit-wrap">
+                <input
+                  class="input-box"
+                  type="number"
+                  step="0.1"
+                  id="weight"
+                  name="weight"
+                  min="20"
+                  max="200"
+                  value="65.0"
+                  placeholder="例：65.0"
+                  required
+                />
+                <span class="unit">kg</span>
+              </div>
+              <p class="err-msg" id="err-weight"></p>
+            </div>
+          </section>
+
+          <!-- ========== STEP 02: 目標設定 ========== -->
+          <section class="card" data-section="2">
+            <div class="section-tag">STEP 02 / GOAL</div>
+            <h2 class="section-title">目標を設定しましょう</h2>
+
+            <!-- BMI 表示 -->
+            <div class="bmi-display">
+              <span class="bmi-label">現在のBMI:</span>
+              <span class="bmi-value" id="bmiValue">22.5</span>
+              <span class="bmi-status" id="bmiStatus">普通体重</span>
+            </div>
+
+            <!-- 目標体重 -->
+            <div class="field-group">
+              <label class="field-label" for="goalWeight">目標の体重<span class="required">必須</span></label>
+              <div class="input-unit-wrap">
+                <input
+                  class="input-box"
+                  type="number"
+                  step="0.1"
+                  id="goalWeight"
+                  name="goalWeight"
+                  min="20"
+                  max="200"
+                  value="60.0"
+                  placeholder="例：60.0"
+                  required
+                />
+                <span class="unit">kg</span>
+              </div>
+              <p class="err-msg" id="err-goalWeight"></p>
+            </div>
+
+            <!-- 目標達成日 -->
+            <div class="field-group">
+              <label class="field-label" for="goalDate">目標達成日<span class="required">必須</span></label>
+              <div class="input-unit-wrap">
+                <input
+                  class="input-box date-input"
+                  type="date"
+                  id="goalDate"
+                  name="goalDate"
+                  required
+                />
+              </div>
+              <p class="err-msg" id="err-goalDate"></p>
+            </div>
+          </section>
+
+          <!-- ========== STEP 03: 目的とライフスタイル ========== -->
+          <section class="card" data-section="3">
+            <div class="section-tag">STEP 03 / LIFESTYLE</div>
+            <h2 class="section-title">目的とライフスタイルについて</h2>
+
+            <!-- 利用目的 -->
+            <div class="field-group">
+              <label class="field-label" for="purpose">利用目的<span class="required">必須</span></label>
+              <select class="select-box" id="purpose" name="purpose" required>
+                <option value="ダイエット" selected>ダイエット</option>
+                <option value="健康維持">健康維持</option>
+                <option value="筋力アップ">筋力アップ</option>
+                <option value="その他">その他</option>
+              </select>
+              <p class="err-msg" id="err-purpose"></p>
+            </div>
+
+            <!-- 目的（その他を選んだ場合） -->
+            <div class="field-group" id="purposeOtherWrap">
+              <label class="field-label" for="purposeOther">
+                目的（その他を選んだ場合）<span class="optional-badge">任意</span>
+              </label>
+              <input
+                type="text"
+                id="purposeOther"
+                class="input-box"
+                name="purposeOther"
+                placeholder="自由に入力してください"
+              />
+              <p class="err-msg" id="err-purposeOther"></p>
+            </div>
+
+            <!-- 活動レベル -->
+            <div class="field-group">
+              <label class="field-label" for="activityLevel">普段の活動レベル<span class="required">必須</span></label>
+              <select class="select-box" id="activityLevel" name="activityLevel" required>
+                <option value="低い" selected>低い（デスクワーク中心・運動ほぼなし）</option>
+                <option value="普通">普通（立ち仕事・軽い運動をする）</option>
+                <option value="高い">高い（活発な肉体労働・ハードな運動）</option>
+              </select>
+              <p class="err-msg" id="err-activityLevel"></p>
+            </div>
+
+            <!-- 職種・仕事内容 -->
+            <div class="field-group">
+              <label class="field-label" for="jobType">職種・仕事内容<span class="optional-badge">任意</span></label>
+              <input
+                type="text"
+                id="jobType"
+                class="input-box"
+                name="jobType"
+                value="会社員"
+                placeholder="例: デスクワーク、営業職など"
+              />
+              <p class="err-msg" id="err-jobType"></p>
+            </div>
+          </section>
+
+          <!-- ========== STEP 04: これまでの経験と食事 ========== -->
+          <section class="card" data-section="4">
+            <div class="section-tag">STEP 04 / DIET & MEAL</div>
+            <h2 class="section-title">これまでの経験と食事について</h2>
+
+            <!-- 過去のダイエット経験 -->
+            <div class="field-group">
+              <label class="field-label" for="dietExp">過去のダイエット経験<span class="required">必須</span></label>
+              <select class="select-box" id="dietExp" name="dietExp" required>
+                <option value="なし" selected>なし（今回が初めて）</option>
+                <option value="あり(1〜2回)">あり（1〜2回経験がある）</option>
+                <option value="何度も挑戦している">何度も挑戦している（リバウンド等）</option>
+              </select>
+              <p class="err-msg" id="err-dietExp"></p>
+            </div>
+
+            <!-- 普段の食事スタイル -->
+            <div class="field-group">
+              <label class="field-label" for="mealStyle">普段の食事スタイル<span class="optional-badge">任意</span></label>
+              <input
+                type="text"
+                id="mealStyle"
+                class="input-box"
+                name="mealStyle"
+                value="外食多め"
+                placeholder="例: 自炊中心、コンビニ多めなど"
+              />
+              <p class="err-msg" id="err-mealStyle"></p>
+            </div>
+
+            <!-- アレルギー・苦手な食べ物 -->
+            <div class="field-group">
+              <label class="field-label" for="allergy">アレルギー・苦手な食べ物<span class="optional-badge">任意</span></label>
+              <input
+                type="text"
+                id="allergy"
+                class="input-box"
+                name="allergy"
+                placeholder="例: エビ、牛乳、特になし"
+              />
+              <p class="err-msg" id="err-allergy"></p>
+            </div>
+          </section>
+
+          <!-- 下部固定ナビゲーションバー -->
+          <nav class="bottom-nav" id="bottomNav">
+            <button type="button" class="btn-nav btn-prev invisible" id="prevBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            <div class="nav-remaining" id="navRemaining">
+              残り <span id="remainingCount">3</span> ステップ
+            </div>
+
+            <button type="button" class="btn-nav btn-next" id="nextBtn">
+              <span>次へ</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+
+            <button type="submit" class="btn-submit hidden" id="submitBtn">
+              <span>診断を完了する</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </nav>
+          
+          <p class="submit-note hidden" id="submitNote">
+            送信後にパーソナライズされたプランが作成されます
+          </p>
+        </form>
+      </main>
+
+      <footer class="survey-footer">
+        <p>&copy; 2026 5DIET App. All Rights Reserved.</p>
+      </footer>
+    </div>
+
+    <script src="/js/survey.js"></script>
+  </body>
+</html>

@@ -5,21 +5,16 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
-    // AWS RDS 接続情報（application.propertiesと統一）
-    private static final String URL  = "jdbc:mysql://localhost:3306/diet_app"
-                                 + "?useSSL=false&serverTimezone=Asia/Tokyo&characterEncoding=UTF-8&allowPublicKeyRetrieval=true";
-    private static final String USER = "root";
-    private static final String PASS = "abcd1234";
+    private static final String URL = "jdbc:mysql://database-1.c3uiu3zg691r.us-east-1.rds.amazonaws.com:3306/diet_app?useSSL=false&serverTimezone=Asia/Tokyo&characterEncoding=UTF-8";
+    private static final String USER = "admin";
+    private static final String PASS = "pbl5hanaws";
 
-    static {
+    public static Connection getConnection() throws SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("MySQL JDBCドライバが見つかりません。pom.xmlの設定を確認してください。", e);
+            e.printStackTrace();
         }
-    }
-
-    public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASS);
     }
 }

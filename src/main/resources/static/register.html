@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>新規会員登録 - 5DIET</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <span class="brand-badge">5DIET</span>
+            <h1>アカウント作成</h1>
+            <p class="subtitle">健康な体への第一歩を踏み出しましょう</p>
+        </div>
+        
+        <div id="message" class="message error" style="display:none;"></div>
+
+        <form action="/api/register" method="post">
+            <div class="field-row">
+                <label for="username">ユーザー名</label>
+                <input type="text" id="username" name="username" required placeholder="ユーザー名を入力してください">
+            </div>
+            <div class="field-row">
+                <label for="email">メールアドレス</label>
+                <input type="email" id="email" name="email" required placeholder="example@domain.com">
+            </div>
+            <div class="field-row">
+                <label for="password">パスワード</label>
+                <div class="password-field">
+                    <input type="password" id="password" name="password" required placeholder="パスワードを入力してください">
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-button">次へ（初回診断）</button>
+        </form>
+
+        <div class="auth-links">
+            <a href="/login.html" class="button-outline">ログインはこちら</a>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        if(params.get('error') === 'already_exists') {
+            const msg = document.getElementById('message');
+            msg.innerText = 'ユーザー名またはメールアドレスが既に存在します。';
+            msg.style.display = 'block';
+        } else if(params.get('error') === 'system_error') {
+            const msg = document.getElementById('message');
+            msg.innerText = 'システムエラーが発生しました。';
+            msg.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
