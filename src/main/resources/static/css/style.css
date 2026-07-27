@@ -1,91 +1,123 @@
 @charset "UTF-8";
 
+/* =========================================
+   style.css (Authentication & Form)
+   Design Base: Exercisestyle Concept
+========================================= */
+
+:root {
+    --primary: #007aff;
+    --primary-light: #e0f0ff;
+    --primary-gradient: linear-gradient(135deg, #007aff 0%, #00c6ff 100%);
+    --bg-app: #f2f2f7;
+    --bg-card: #ffffff;
+    --text-main: #1c1c1e;
+    --text-sub: #8e8e93;
+    --border: #e5e5ea;
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06);
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    --radius-card: 20px;
+    --radius-input: 12px;
+    --transition: 0.2s ease;
+}
+
 /* 全体のベース設定 */
+*, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
-    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-    background-color: #f4f7f6;
-    color: #333;
+    font-family: var(--font-main);
+    background-color: var(--bg-app);
+    color: var(--text-main);
     margin: 0;
-    padding: 0;
+    padding: 16px;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
 }
 
-/* 白い枠（コンテナ）の設定 */
+/* コンテナ設定 */
 .container {
-    background-color: #fff;
+    background-color: var(--bg-card);
     width: 100%;
     max-width: 400px;
-    padding: 32px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    box-sizing: border-box;
+    padding: 32px 24px;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    border: 1px solid rgba(0,0,0,0.02);
 }
 
 /* ヘッダー・ロゴ周り */
 .brand-header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 
 .brand-badge {
     display: inline-block;
-    background-color: #4CAF50; /* 緑に変更 */
-    color: #fff;
-    padding: 4px 12px;
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 4px 14px;
     border-radius: 20px;
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 800;
     margin-bottom: 12px;
+    letter-spacing: 0.5px;
 }
 
 h1 {
     font-size: 24px;
+    font-weight: 800;
     margin: 0 0 8px 0;
-    color: #333;
+    color: var(--text-main);
+    letter-spacing: -0.5px;
 }
 
 .subtitle {
-    font-size: 14px;
-    color: #666;
+    font-size: 13px;
+    color: var(--text-sub);
     margin: 0;
+    font-weight: 500;
 }
 
-/* フォーム入力欄の設定 */
+/* フォーム入力欄 */
 .field-row {
     margin-bottom: 20px;
 }
 
 label {
     display: block;
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 13px;
+    font-weight: 700;
     margin-bottom: 8px;
-    color: #333;
+    color: var(--text-main);
 }
 
 input[type="text"],
 input[type="password"],
 input[type="email"] {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 16px;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-input);
+    font-size: 15px;
+    background-color: #fff;
+    color: var(--text-main);
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 input[type="text"]:focus,
 input[type="password"]:focus,
 input[type="email"]:focus {
-    border-color: #4CAF50; /* 緑に変更 */
-    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
 }
 
-/* パスワード表示切り替えボタン */
+/* パスワード表示切替 */
 .password-field {
     position: relative;
     display: flex;
@@ -98,96 +130,93 @@ input[type="email"]:focus {
 
 .password-toggle {
     position: absolute;
-    right: 8px;
+    right: 12px;
     background: none;
     border: none;
-    color: #4CAF50; /* 緑に変更 */
-    font-size: 14px;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     padding: 4px;
 }
 
 /* メッセージ表示エリア */
 .message {
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 600;
     margin-top: 12px;
     min-height: 20px;
     text-align: center;
 }
-.message.error { color: #d93025; }
-.message.success { color: #188038; }
+.message.error { color: #ff3b30; }
+.message.success { color: #34c759; }
 
-/* -------------------------------------------
-   ボタンのデザイン設定
-------------------------------------------- */
-
-/* ログイン用のメインボタン */
+/* ボタン類 */
 .submit-button {
     width: 100%;
-    padding: 14px;
-    background-color: #4CAF50; /* 緑に変更 */
+    padding: 16px;
+    background: var(--primary-gradient);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-input);
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 800;
     cursor: pointer;
-    transition: background-color 0.2s;
-    margin-bottom: 24px;
+    box-shadow: 0 4px 14px rgba(0, 122, 255, 0.25);
+    transition: transform 0.1s ease, opacity var(--transition);
+    margin-bottom: 20px;
 }
 
-.submit-button:hover {
-    background-color: #388E3C; /* ホバー時は少し濃い緑 */
+.submit-button:active {
+    transform: scale(0.98);
+    opacity: 0.9;
 }
 
-/* 新規登録・再設定ボタンをまとめるエリア */
 .auth-links {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-top: 24px;
+    gap: 10px;
+    margin-top: 20px;
 }
 
-/* 再設定用のグレーのボタン */
 .button-secondary {
     display: block;
     width: 100%;
     padding: 12px;
-    background-color: #6c757d;
-    color: #ffffff;
+    background-color: #e5e5ea;
+    color: var(--text-main);
     text-decoration: none;
     border: none;
     text-align: center;
-    border-radius: 8px;
-    font-weight: bold;
+    border-radius: var(--radius-input);
+    font-weight: 700;
     font-size: 14px;
     cursor: pointer;
-    transition: opacity 0.2s;
-    box-sizing: border-box;
+    transition: background-color var(--transition), transform 0.1s ease;
 }
 
-.button-secondary:hover {
-    opacity: 0.8;
+.button-secondary:active {
+    transform: scale(0.98);
+    background-color: #d1d1d6;
 }
 
-/* 新規登録用の緑枠ボタン */
 .button-outline {
     display: block;
     width: 100%;
     padding: 12px;
     background-color: transparent;
-    color: #4CAF50; /* 緑に変更 */
+    color: var(--primary);
     text-decoration: none;
-    border: 2px solid #4CAF50; /* 緑に変更 */
+    border: 1px solid rgba(0, 122, 255, 0.3);
     text-align: center;
-    border-radius: 8px;
-    font-weight: bold;
+    border-radius: var(--radius-input);
+    font-weight: 700;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-    box-sizing: border-box;
+    transition: background-color var(--transition), transform 0.1s ease;
 }
 
-.button-outline:hover {
-    background-color: #e8f5e9; /* ホバー時はごく薄い緑 */
+.button-outline:active {
+    transform: scale(0.98);
+    background-color: var(--primary-light);
 }

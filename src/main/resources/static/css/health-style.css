@@ -1,35 +1,69 @@
-/* =====================
-   ベース
-   ===================== */
+/* =========================================
+   health-style.css
+   Design Base: Exercisestyle Concept
+========================================= */
+
+/* ---------- CSS変数（トークン） ---------- */
+:root {
+  --primary: #007aff;
+  --primary-light: #e0f0ff;
+  --primary-hover: #0056b3;
+  --primary-gradient: linear-gradient(135deg, #007aff 0%, #00c6ff 100%);
+  --bg-app: #f2f2f7;
+  --bg-card: #ffffff;
+  --text-main: #1c1c1e;
+  --text-sub: #8e8e93;
+  --border: #e5e5ea;
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-pressed: 0 2px 4px rgba(0, 0, 0, 0.02);
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  --radius-card: 20px;
+  --radius-input: 12px;
+  --transition: 0.2s ease;
+}
+
+/* ---------- ベース ---------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
-  font-family: sans-serif;
+  font-family: var(--font-main);
   padding: 20px;
-  background: #fafafa;
-  color: #1a1a1a;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.5;
+  margin: 0;
 }
 
 h1 {
   text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 20px;
+  color: var(--text-main);
 }
 
-/* =====================
-   カード
-   ===================== */
+/* ---------- カード ---------- */
 .card {
-  background: white;
+  background: var(--bg-card);
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding-bottom: 20px;
   height: auto;
+  transition: transform var(--transition), box-shadow var(--transition);
 }
 
 .graph-card {
   background: none;
   box-shadow: none;
+  border: none;
   padding: 0;
   height: auto;
 }
@@ -37,12 +71,12 @@ h1 {
 .card-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 16px;
   max-width: 800px;
   margin: 0 auto;
 }
 
-/* 上の体重カードの余白を完全にゼロにする */
+/* 上の体重カード（特有設定の保護） */
 .card.top-weight-card {
   background: transparent !important;
   background-color: transparent !important;
@@ -55,54 +89,66 @@ h1 {
 .top-weight-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
   margin-bottom: 0;
   padding-bottom: 0;
 }
 
-/* 左の項目を少し右へ寄せる */
 .left-item {
   text-align: left;
-  margin-left: 40px;
+  margin-left: 20px;
 }
 
-/* =====================
-   入力系
-   ===================== */
+/* ---------- フォーム・入力系 ---------- */
 label {
   display: block;
-  margin-top: 10px;
-  font-weight: bold;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 input {
   width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  padding: 12px 16px;
+  margin-top: 6px;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--border);
+  background-color: #ffffff;
+  font-size: 15px;
+  color: var(--text-main);
   box-sizing: border-box;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
 }
 
 button {
   width: 100%;
-  padding: 15px;
+  padding: 16px;
   margin-top: 20px;
   font-size: 16px;
+  font-weight: 700;
   border: none;
-  border-radius: 8px;
-  background: #4CAF50;
+  border-radius: var(--radius-input);
+  background: var(--primary-gradient);
   color: white;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+  transition: transform 0.1s ease, opacity var(--transition);
 }
 
-button:hover {
-  background: #43a047;
+button:active {
+  transform: scale(0.98);
+  opacity: 0.9;
 }
 
-/* =====================
-   グラフ
-   ===================== */
+/* ---------- グラフ ---------- */
 canvas {
   width: 100% !important;
   height: auto !important;
@@ -114,9 +160,7 @@ canvas {
   margin: 0 auto;
 }
 
-/* =====================
-   ToDo（入力画面 & ダッシュボード）
-   ===================== */
+/* ---------- ToDo ---------- */
 #todoList,
 #todoListDashboard {
   padding: 0;
@@ -127,20 +171,25 @@ canvas {
 #todoListDashboard li {
   display: flex;
   flex-direction: row;
-  justify-content: space-between; /* ← 左右に分ける決定打 */
+  justify-content: space-between;
   align-items: center;
   list-style: none;
-  padding: 6px 0;
-  width: 100%; /* ← li をカード幅いっぱいに広げる */
-  min-height: 32px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  width: 100%;
+  min-height: 40px;
 }
 
 #todoList li span,
 #todoListDashboard li span {
-  flex-grow: 1; /* ← 左側を広げる */
+  flex-grow: 1;
   display: inline-block;
   white-space: nowrap;
-  line-height: 32px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 #todoList li input[type="checkbox"],
@@ -148,12 +197,12 @@ canvas {
   transform: scale(1.2);
   flex-shrink: 0;
   cursor: pointer;
+  accent-color: var(--primary);
+  margin-top: 0;
+  width: auto;
 }
 
-
-/* =====================
-   スケジュールリスト
-   ===================== */
+/* ---------- スケジュール ---------- */
 #planListDashboard {
   padding: 0;
   margin: 8px 0;
@@ -161,13 +210,17 @@ canvas {
 
 #planListDashboard li {
   list-style: none;
-  padding: 4px 0;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
   font-size: 14px;
+  color: var(--text-main);
 }
 
-/* =====================
-   レスポンシブ
-   ===================== */
+#planListDashboard li:last-child {
+  border-bottom: none;
+}
+
+/* ---------- レスポンシブ ---------- */
 @media (max-width: 600px) {
   .card-container {
     grid-template-columns: 1fr;
