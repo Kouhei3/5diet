@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Health Dashboard</title>
+  <link rel="stylesheet" href="/css/health-style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <h1>Health Dashboard</h1>
+
+  <!-- 上段：あなたの体重 & 目標体重 -->
+  <div class="card-container">
+
+    <div class="card top-weight-card left-item">
+      <h2>あなたの体重</h2>
+      <p id="latestWeightTop">-- kg</p>
+    </div>
+
+    <div class="card top-weight-card">
+      <h2>目標体重</h2>
+      <p id="goalWeightTop">-- kg</p>
+    </div>
+
+  </div>
+
+  <!-- 今日の体重 & 今日のやること -->
+  <div class="card-container">
+
+    <div class="card">
+      <h2>今日の体重</h2>
+      <p id="latestWeight">-- kg</p>
+      <button onclick="location.href='http://localhost:8080/task/health-weight'">体重を入力する</button>
+    </div>
+
+    <div class="card">
+      <h2>今日のやること</h2>
+
+      <ul id="todoListDashboard"></ul>
+
+      <button onclick="location.href='http://localhost:8080/task/health-todo'">ToDoを追加する</button>
+    </div>
+
+  </div>
+
+  <!-- 食事入力 & タイムスケジュール -->
+  <div class="card-container">
+
+    <div class="card">
+      <h2>食事</h2>
+      <button onclick="location.href='http://localhost:8080/task/health-food'">食事を入力する</button>
+    </div>
+
+    <div class="card">
+      <h2>タイムスケジュール</h2>
+      <button onclick="location.href='http://localhost:8080/task/health-schedule'">スケジュールを見る</button>
+    </div>
+
+  </div>
+
+  <!-- ミニ体重グラフ -->
+  <div class="card graph-card">
+    <h2>体重グラフ</h2>
+    <canvas id="miniChart"></canvas>
+  </div>
+<script src="/js/health-app.js"></script>
+</body>
+</html>

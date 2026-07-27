@@ -1,0 +1,193 @@
+@charset "UTF-8";
+
+/* 全体のベース設定 */
+body {
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* 白い枠（コンテナ）の設定 */
+.container {
+    background-color: #fff;
+    width: 100%;
+    max-width: 400px;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+
+/* ヘッダー・ロゴ周り */
+.brand-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.brand-badge {
+    display: inline-block;
+    background-color: #4CAF50; /* 緑に変更 */
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+h1 {
+    font-size: 24px;
+    margin: 0 0 8px 0;
+    color: #333;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+/* フォーム入力欄の設定 */
+.field-row {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
+    border-color: #4CAF50; /* 緑に変更 */
+    outline: none;
+}
+
+/* パスワード表示切り替えボタン */
+.password-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-field input {
+    padding-right: 60px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #4CAF50; /* 緑に変更 */
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px;
+}
+
+/* メッセージ表示エリア */
+.message {
+    font-size: 14px;
+    margin-top: 12px;
+    min-height: 20px;
+    text-align: center;
+}
+.message.error { color: #d93025; }
+.message.success { color: #188038; }
+
+/* -------------------------------------------
+   ボタンのデザイン設定
+------------------------------------------- */
+
+/* ログイン用のメインボタン */
+.submit-button {
+    width: 100%;
+    padding: 14px;
+    background-color: #4CAF50; /* 緑に変更 */
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 24px;
+}
+
+.submit-button:hover {
+    background-color: #388E3C; /* ホバー時は少し濃い緑 */
+}
+
+/* 新規登録・再設定ボタンをまとめるエリア */
+.auth-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+/* 再設定用のグレーのボタン */
+.button-secondary {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #6c757d;
+    color: #ffffff;
+    text-decoration: none;
+    border: none;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    box-sizing: border-box;
+}
+
+.button-secondary:hover {
+    opacity: 0.8;
+}
+
+/* 新規登録用の緑枠ボタン */
+.button-outline {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: transparent;
+    color: #4CAF50; /* 緑に変更 */
+    text-decoration: none;
+    border: 2px solid #4CAF50; /* 緑に変更 */
+    text-align: center;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    box-sizing: border-box;
+}
+
+.button-outline:hover {
+    background-color: #e8f5e9; /* ホバー時はごく薄い緑 */
+}

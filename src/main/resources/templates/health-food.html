@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>食事入力</title>
+  <link rel="stylesheet" href="css/health-style.css">
+</head>
+<body>
+
+  <h1>食事入力</h1>
+
+  <div class="card">
+    <label>食品名</label>
+    <input id="foodName" type="text" placeholder="例：鶏むね肉">
+
+    <label>カロリー（kcal）</label>
+    <input id="calorie" type="number" placeholder="200">
+
+    <label>タンパク質（g）</label>
+    <input id="protein" type="number" step="0.1" placeholder="20">
+
+    <button id="saveFoodBtn">保存</button>
+  </div>
+
+  <script src="js/health-app.js" defer></script>
+</body>
+</html>

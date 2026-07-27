@@ -1,0 +1,175 @@
+/* =====================
+   ベース
+   ===================== */
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background: #fafafa;
+  color: #1a1a1a;
+}
+
+h1 {
+  text-align: center;
+}
+
+/* =====================
+   カード
+   ===================== */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  height: auto;
+}
+
+.graph-card {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  height: auto;
+}
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* 上の体重カードの余白を完全にゼロにする */
+.card.top-weight-card {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.top-weight-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* 左の項目を少し右へ寄せる */
+.left-item {
+  text-align: left;
+  margin-left: 40px;
+}
+
+/* =====================
+   入力系
+   ===================== */
+label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #43a047;
+}
+
+/* =====================
+   グラフ
+   ===================== */
+canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+.chart-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* =====================
+   ToDo（入力画面 & ダッシュボード）
+   ===================== */
+#todoList,
+#todoListDashboard {
+  padding: 0;
+  margin: 0;
+}
+
+#todoList li,
+#todoListDashboard li {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between; /* ← 左右に分ける決定打 */
+  align-items: center;
+  list-style: none;
+  padding: 6px 0;
+  width: 100%; /* ← li をカード幅いっぱいに広げる */
+  min-height: 32px;
+}
+
+#todoList li span,
+#todoListDashboard li span {
+  flex-grow: 1; /* ← 左側を広げる */
+  display: inline-block;
+  white-space: nowrap;
+  line-height: 32px;
+}
+
+#todoList li input[type="checkbox"],
+#todoListDashboard li input[type="checkbox"] {
+  transform: scale(1.2);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+
+/* =====================
+   スケジュールリスト
+   ===================== */
+#planListDashboard {
+  padding: 0;
+  margin: 8px 0;
+}
+
+#planListDashboard li {
+  list-style: none;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+/* =====================
+   レスポンシブ
+   ===================== */
+@media (max-width: 600px) {
+  .card-container {
+    grid-template-columns: 1fr;
+  }
+}
