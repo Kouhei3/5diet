@@ -40,15 +40,15 @@ public class VerifyApiServlet extends HttpServlet {
 
             if (verified) {
                 // ★ 本登録成功 → アンケート１枚目へ
-                response.sendRedirect("/survey.html");
+                response.sendRedirect("/survey");
             } else {
-                // ★ 失敗 → 認証画面に戻す
-                response.sendRedirect("/webapp/verify.html?error=1");
+                // ★ 失敗 → 新規登録画面に戻す（コードが無効な場合は登録からやり直し）
+                response.sendRedirect("/register?error=3");
             }
 
         } catch (Exception e) {
-            // ★ エラー時も認証画面へ戻す
-            response.sendRedirect("/webapp/verify.html?error=2");
+            // ★ エラー時も新規登録画面へ戻す
+            response.sendRedirect("/register?error=3");
         }
     }
 }

@@ -2,82 +2,45 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>メール認証コードの入力</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/style.css">
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f7f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-        }
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        p {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
+        /* このページ固有のスタイルのみ */
+        .container { text-align: center; }
         .email-highlight {
             font-weight: bold;
-            color: #2ecc71;
+            color: var(--primary);
         }
         input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
             text-align: center;
             letter-spacing: 4px;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #2ecc71;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #27ae60;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>メールをご確認ください</h2>
-    <p>
-        ご入力いただいたメールアドレス<br>
-        <span class="email-highlight" th:text="${email}">example@example.com</span><br>
-        宛に認証コードを送信しました。
-    </p>
+    <div class="brand-header">
+        <div class="brand-badge">STEP 2</div>
+        <h1>メールをご確認ください</h1>
+        <p class="subtitle">
+            ご入力いただいたメールアドレス<br>
+            <span class="email-highlight" th:text="${email}">example@example.com</span><br>
+            宛に認証コードを送信しました。
+        </p>
+    </div>
 
-    <form action="/verify" method="POST">
+    <form action="/api/verify" method="POST">
         <input type="hidden" name="email" th:value="${email}" />
-        
-        <input type="text" name="code" placeholder="6桁の認証コード" required maxlength="6" autocomplete="off">
-        <button type="submit">認証する</button>
+        <input type="hidden" name="username" th:value="${username}" />
+
+        <div class="field-row">
+            <input type="text" name="code" placeholder="6桁の認証コード" required maxlength="6" autocomplete="off">
+        </div>
+        <button type="submit" class="submit-button">認証する</button>
     </form>
 </div>
 

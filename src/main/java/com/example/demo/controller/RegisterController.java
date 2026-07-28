@@ -35,6 +35,7 @@ public class RegisterController {
 
                 // ★ check-email.html に遷移
                 model.addAttribute("email", email);
+                model.addAttribute("username", username);
                 return "check-email";
             } else {
                 return "redirect:/register?error=1";

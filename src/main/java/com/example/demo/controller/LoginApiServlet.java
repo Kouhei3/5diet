@@ -39,10 +39,10 @@ public class LoginApiServlet extends HttpServlet {
 
         if (authResult.user != null) {
             // ★ ログイン成功 → ダッシュボードへ
-            response.sendRedirect("/dashboard.html");
+            response.sendRedirect("/task/health-dashboard");
         } else {
             // ★ ログイン失敗 → ログイン画面に戻す
-            response.sendRedirect("/webapp/login.html?error=1");
+            response.sendRedirect("/login?error=1");
         }
     }
 }
